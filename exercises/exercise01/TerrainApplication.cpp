@@ -21,16 +21,24 @@ void TerrainApplication::Initialize()
     // (todo) 01.1: Create containers for the vertex position
     std::vector<Vector3> vertices;
 
-    // (todo) 01.1: Fill in vertex data
-    for(size_t i = 0; i < m_gridX; ++i) {
-        for(size_t j = 0; j < m_gridY; ++j) {
-            vertices.push_back(Vector3(i, j, 0));
-            vertices.push_back(Vector3(i+1,j, 0));
-            vertices.push_back(Vector3(i, j + 1, 0));
+    Vector2 gridSize(1.0f/m_gridX, 1.0f/m_gridY);
+    float offset = 0.5;
 
-            vertices.push_back(Vector3(i+1,j, 0));
-            vertices.push_back(Vector3(i, j + 1, 0)),
-            vertices.push_back(Vector3(i+1,j+1, 0));
+    // (todo) 01.1: Fill in vertex data
+    for(size_t j = 0; j < m_gridX; ++j) {
+        for(size_t i = 0; i < m_gridY; ++i) {
+            float left = i * gridSize.x - offset;
+            float right = (i + 1) * gridSize.x - offset;
+            float bottom = j * gridSize.y - offset;
+            float top = (j + 1) * gridSize.y - offset;
+
+            vertices.push_back(Vector3(left, bottom, 0));
+            vertices.push_back(Vector3(right,bottom, 0));
+            vertices.push_back(Vector3(left, top, 0));
+
+            vertices.push_back(Vector3(right,bottom, 0));
+            vertices.push_back(Vector3(left, top, 0)),
+            vertices.push_back(Vector3(right,top, 0));
         }
     }
 
@@ -44,10 +52,13 @@ void TerrainApplication::Initialize()
     // (todo) 01.5: Initialize EBO
 
     // (todo) 01.1: Unbind VAO, and VBO
-    m_vao.Unbind();
     m_vbo.Unbind();
+    m_vao.Unbind();
+
 
     // (todo) 01.5: Unbind EBO
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void TerrainApplication::Update()
