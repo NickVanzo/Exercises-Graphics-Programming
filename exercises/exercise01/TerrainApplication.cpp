@@ -10,8 +10,9 @@
 
 struct Vertex {
     Vector3 position;
-    Vector3 color;
     Vector2 textureCoordinate;
+    Vector3 color;
+    Vector3 normal;
 };
 
 TerrainApplication::TerrainApplication()
@@ -80,19 +81,62 @@ void TerrainApplication::Initialize()
         }
     }
 
+    for (int j = 0; j < rowCount; ++j)
+    {
+        for (int i = 0; i < columnCount; ++i)
+        {
+            auto& currVertex = vertices[i + j * columnCount];
+            Vertex leftVertex = currVertex;
+            Vertex rightVertex = currVertex;
+            Vertex upVertex = currVertex;
+            Vertex downVertex = currVertex;
+
+            //compute the left vertex
+            if(i > 0) {
+                leftVertex = vertices[i - 1 + j * columnCount];
+            }
+
+            //compute the right vertex
+            if(i < m_gridX) {
+                rightVertex = vertices[i + 1 + j * columnCount];
+            }
+
+            //compute the up vertex
+            if(j > 0) {
+                upVertex = vertices[i + j * columnCount - columnCount];
+            }
+
+            if(j < m_gridY) {
+                downVertex = vertices[i + j * columnCount + columnCount];
+            }
+            auto deltaX = (rightVertex.position.z - leftVertex.position.z) / (rightVertex.position.x - leftVertex.position.x);
+            auto deltaY = (upVertex.position.z - downVertex.position.z) / (upVertex.position.y - downVertex.position.y);
+
+            currVertex.normal = Vector3(deltaX, deltaY, 1).Normalize();
+        }
+    }
+
+
 // Declare attributes
     VertexAttribute positionAttribute(Data::Type::Float, 3);
     VertexAttribute texCoordAttribute(Data::Type::Float, 2);
     VertexAttribute colorAttribute(Data::Type::Float, 3);
+    VertexAttribute normalAttribute(Data::Type::Float, 3);
 
     m_vbo.Bind();
     m_vbo.AllocateData(std::span(vertices));
 
     m_vao.Bind();
 
-    m_vao.SetAttribute(0, positionAttribute, 0, sizeof(Vertex));
-    m_vao.SetAttribute(1, texCoordAttribute, positionAttribute.GetSize(), sizeof(Vertex));
-    m_vao.SetAttribute(2, colorAttribute, positionAttribute.GetSize() + texCoordAttribute.GetSize(), sizeof(Vertex));
+    float posOffset = 0u;
+    float textOffset = posOffset + positionAttribute.GetSize();
+    float colorOffset = textOffset + colorAttribute.GetSize();
+    float normalOffset = colorOffset + normalAttribute.GetSize();
+
+    m_vao.SetAttribute(0, positionAttribute, posOffset, sizeof(Vertex));
+    m_vao.SetAttribute(1, texCoordAttribute, textOffset, sizeof(Vertex));
+    m_vao.SetAttribute(2, colorAttribute, colorOffset, sizeof(Vertex));
+    m_vao.SetAttribute(3, normalAttribute, normalOffset, sizeof(Vertex));
 
     // (todo) 01.5: Initialize EBO
     m_ebo.Bind();
