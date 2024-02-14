@@ -9,19 +9,22 @@
 
 // DeviceGL and main Window are constructed in the correct order because they were declared like that!
 Application::Application(int width, int height, const char* title)
-    : m_exitCode(0), m_mainWindow(height, width, title), m_currentTime(0.0f), m_deltaTime(0.0f)
+    : m_mainWindow(width, height, title), m_currentTime(0), m_deltaTime(0), m_exitCode(0)
 {
+    // If the main window is not valid, exit with error
     if (!m_mainWindow.IsValid())
     {
         Terminate(-1, "Failed to create GLFW window");
+        return;
     }
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    m_deviceGL.SetCurrentWindow(m_mainWindow);
-    if (!m_deviceGL.IsReady())
+    m_device.SetCurrentWindow(m_mainWindow);
+
+    // If the device is not ready, exit with error
+    if (!m_device.IsReady())
     {
-        Terminate(-2, "Failed to inizialize GLAD");
+        Terminate(-2, "Failed to initialize OpenGL with GLAD");
+        return;
     }
 }
 
@@ -54,6 +57,10 @@ int Application::Run()
             Update();
 
             Render();
+
+            // Swap buffers and poll events at the end of the frame
+            m_mainWindow.SwapBuffers();
+            m_device.PollEvents();
         }
 
         Cleanup();
@@ -69,14 +76,10 @@ void Application::Initialize()
 
 void Application::Update()
 {
-    m_mainWindow.SwapBuffers();
-    m_deviceGL.PollEvents();
-}
-
-void processInput(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    if (m_mainWindow.IsKeyPressed(GLFW_KEY_ESCAPE))
+    {
+        Close();
+    }
 }
 
 void Application::Render()
@@ -98,7 +101,10 @@ void Application::Terminate(int exitCode, const char* errorMessage)
     }
 
     // If termination is requested and main window is still valid, request to close
-
+    if (m_mainWindow.IsValid())
+    {
+        m_mainWindow.Close();
+    }
 
     // Force assert here to detect error termination
     assert(!exitCode);
@@ -113,5 +119,5 @@ void Application::UpdateTime(float newCurrentTime)
 bool Application::IsRunning() const
 {
     // Run while the window is valid and it has not been requested to close
-    return !m_mainWindow.ShouldClose();
+    return m_mainWindow.IsValid() && !m_mainWindow.ShouldClose();
 }

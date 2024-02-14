@@ -21,6 +21,7 @@ protected:
     void Render() override;
     void Cleanup() override;
     void BuildShaderProgram();
+    void UpdateOutputMode();
 
 private:
     unsigned int m_gridX, m_gridY;

@@ -17,23 +17,27 @@ public:
     int Run();
 
 protected:
-    DeviceGL& GetDevice() {return m_deviceGL;};
-    const DeviceGL& GetDevice() const {return m_deviceGL;};
+    // (C++) 1
+    // Get the OpenGL device
+    const DeviceGL& GetDevice() const { return m_device; }
+    DeviceGL& GetDevice() { return m_device; }
 
-    Window& GetWindow() {return m_mainWindow;};
-    const Window& GetWindow() const {return m_mainWindow;};
+    // (C++) 1
+    // Get the main window of the application
+    inline Window& GetMainWindow() { return m_mainWindow; }
+    inline const Window& GetMainWindow() const { return m_mainWindow; }
 
     // Get time in seconds from the start of the application
-    inline float GetCurrentTime() const { return m_currentTime; }
+    float GetCurrentTime() const { return m_currentTime; }
 
     // Get time in seconds of the current frame
-    inline float GetDeltaTime() const { return m_deltaTime; }
+    float GetDeltaTime() const { return m_deltaTime; }
 
     // Test if the application is currently running
     bool IsRunning() const;
 
     // Request the application to stop running
-    inline void Close() { Terminate(0); }
+    void Close() { Terminate(0); }
 
     // Load initial resources and initialize data before the main loop
     virtual void Initialize();
@@ -57,7 +61,10 @@ private:
     void UpdateTime(float newCurrentTime);
 
 private:
-    DeviceGL m_deviceGL;
+    // OpenGL device
+    DeviceGL m_device;
+
+    // Main window
     Window m_mainWindow;
 
     // Time in seconds from the start of the application

@@ -19,51 +19,87 @@ void TerrainApplication::Initialize()
     BuildShaderProgram();
 
     // (todo) 01.1: Create containers for the vertex position
-    std::vector<Vector3> vertices;
+    std::vector<Vector3> positions;
+    std::vector<Vector2> textureCoordinates;
+    std::vector<unsigned int> indices;
+
+    unsigned int columnCount = m_gridX + 1;
+    unsigned int rowCount = m_gridY + 1;
 
     Vector2 gridSize(1.0f/m_gridX, 1.0f/m_gridY);
     float offset = 0.5;
 
-    // (todo) 01.1: Fill in vertex data
-    for(size_t j = 0; j < m_gridX; ++j) {
-        for(size_t i = 0; i < m_gridY; ++i) {
-            float left = i * gridSize.x - offset;
-            float right = (i + 1) * gridSize.x - offset;
-            float bottom = j * gridSize.y - offset;
-            float top = (j + 1) * gridSize.y - offset;
+    for (int j = 0; j < rowCount; ++j)
+    {
+        for (int i = 0; i < columnCount; ++i)
+        {
+            // Vertex data for this vertex only
+            positions.push_back(Vector3(i * gridSize.x - 0.5f, j * gridSize.y - 0.5f, 0));
+            textureCoordinates.push_back(Vector2(i, j));
 
-            vertices.push_back(Vector3(left, bottom, 0));
-            vertices.push_back(Vector3(right,bottom, 0));
-            vertices.push_back(Vector3(left, top, 0));
+            // Index data for quad formed by previous vertices and current
+            if (i > 0 && j > 0)
+            {
+                unsigned int top_right = j * columnCount + i; // Current vertex
+                unsigned int top_left = top_right - 1;
+                unsigned int bottom_right = top_right - columnCount;
+                unsigned int bottom_left = bottom_right - 1;
 
-            vertices.push_back(Vector3(right,bottom, 0));
-            vertices.push_back(Vector3(left, top, 0)),
-            vertices.push_back(Vector3(right,top, 0));
+                //Triangle 1
+                indices.push_back(bottom_left);
+                indices.push_back(bottom_right);
+                indices.push_back(top_left);
+
+                //Triangle 2
+                indices.push_back(bottom_right);
+                indices.push_back(top_left);
+                indices.push_back(top_right);
+            }
         }
     }
 
+// Declare attributes
+    VertexAttribute positionAttribute(Data::Type::Float, 3);
+    VertexAttribute texCoordAttribute(Data::Type::Float, 2);
+
+    // Compute offsets inside the buffer
+    unsigned int vertexCount = positions.size(); // all attributes have the same vertex count
+    size_t positionsOffset = 0u;
+    size_t texCoordsOffset = positionsOffset + vertexCount * positionAttribute.GetSize();
+    size_t totalSize = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
+
+
     m_vbo.Bind();
-    m_vbo.AllocateData<Vector3>(vertices);
+    m_vbo.AllocateData(totalSize);
+
+    // Initialize data in the VBO with all the attributes
+    m_vbo.UpdateData(std::span(positions), positionsOffset);
+    m_vbo.UpdateData(std::span(textureCoordinates), texCoordsOffset);
 
     m_vao.Bind();
-    VertexAttribute vAttribute(Data::Type::Float, 3);
-    m_vao.SetAttribute(0, vAttribute, 0);
+
+    m_vao.SetAttribute(0, positionAttribute, positionsOffset);
+    m_vao.SetAttribute(1, texCoordAttribute, texCoordsOffset);
 
     // (todo) 01.5: Initialize EBO
+    m_ebo.Bind();
+    m_ebo.AllocateData(std::span(indices));
 
     // (todo) 01.1: Unbind VAO, and VBO
     m_vbo.Unbind();
     m_vao.Unbind();
-
+    m_ebo.Unbind();
 
     // (todo) 01.5: Unbind EBO
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void TerrainApplication::Update()
 {
     Application::Update();
+    UpdateOutputMode();
+    
 }
 
 void TerrainApplication::Render()
@@ -73,7 +109,7 @@ void TerrainApplication::Render()
     GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
     glUseProgram(m_shaderProgram);
     m_vao.Bind();
-    glDrawArrays(GL_TRIANGLES, 0, m_gridY * m_gridX * 6);
+    glDrawElements(GL_TRIANGLES, m_gridX * m_gridY * 6, GL_UNSIGNED_INT, nullptr);
 }
 
 void TerrainApplication::Cleanup()
@@ -168,4 +204,24 @@ void TerrainApplication::BuildShaderProgram()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     m_shaderProgram = shaderProgram;
+}
+void TerrainApplication::UpdateOutputMode()
+{
+    for (int i = 0; i <= 4; ++i)
+    {
+        if (GetMainWindow().IsKeyPressed(GLFW_KEY_0 + i))
+        {
+            int modeLocation = glGetUniformLocation(m_shaderProgram, "Mode");
+            glUseProgram(m_shaderProgram);
+            glUniform1ui(modeLocation, i);
+            break;
+        }
+    }
+    if (GetMainWindow().IsKeyPressed(GLFW_KEY_TAB))
+    {
+        const float projMatrix[16] = { 0, -1.294f, -0.721f, -0.707f, 1.83f, 0, 0, 0, 0, 1.294f, -0.721f, -0.707f, 0, 0, 1.24f, 1.414f };
+        int matrixLocation = glGetUniformLocation(m_shaderProgram, "Matrix");
+        glUseProgram(m_shaderProgram);
+        glUniformMatrix4fv(matrixLocation, 1, false, projMatrix);
+    }
 }
