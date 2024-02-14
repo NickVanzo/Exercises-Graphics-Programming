@@ -4,11 +4,12 @@
 #include "Vector3.h"
 #include <cmath>
 #include <iostream>
-
+#define STB_PERLIN_IMPLEMENTATION
+#include "stb_perlin.h"
 // (todo) 01.8: Declare an struct with the vertex format
 
 TerrainApplication::TerrainApplication()
-    : Application(1024, 1024, "Terrain demo"), m_gridX(16), m_gridY(16)
+    : Application(1024, 1024, "Terrain demo"), m_gridX(64), m_gridY(64)
 {
 }
 
@@ -33,8 +34,11 @@ void TerrainApplication::Initialize()
     {
         for (int i = 0; i < columnCount; ++i)
         {
+            auto x = i * gridSize.x - 0.5f;
+            auto y = j * gridSize.y - 0.5f;
+            auto z = stb_perlin_fbm_noise3(x, y, 0.0f, 2.0f, 0.5f, 6);
             // Vertex data for this vertex only
-            positions.push_back(Vector3(i * gridSize.x - 0.5f, j * gridSize.y - 0.5f, 0));
+            positions.push_back(Vector3(x, y, z));
             textureCoordinates.push_back(Vector2(i, j));
 
             // Index data for quad formed by previous vertices and current
@@ -92,7 +96,7 @@ void TerrainApplication::Initialize()
 
     // (todo) 01.5: Unbind EBO
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void TerrainApplication::Update()
