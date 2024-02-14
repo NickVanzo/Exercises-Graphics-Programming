@@ -8,6 +8,12 @@
 #include "stb_perlin.h"
 // (todo) 01.8: Declare an struct with the vertex format
 
+struct Vertex {
+    Vector3 position;
+    Vector3 color;
+    Vector2 textureCoordinate;
+};
+
 TerrainApplication::TerrainApplication()
     : Application(1024, 1024, "Terrain demo"), m_gridX(64), m_gridY(64)
 {
@@ -22,9 +28,7 @@ void TerrainApplication::Initialize()
     BuildShaderProgram();
 
     // (todo) 01.1: Create containers for the vertex position
-    std::vector<Vector3> positions;
-    std::vector<Vector3> colors;
-    std::vector<Vector2> textureCoordinates;
+    std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
     unsigned int columnCount = m_gridX + 1;
@@ -36,13 +40,10 @@ void TerrainApplication::Initialize()
     {
         for (int i = 0; i < columnCount; ++i)
         {
+
             auto x = i * gridSize.x - 0.5f;
             auto y = j * gridSize.y - 0.5f;
             auto z = stb_perlin_fbm_noise3(x, y, 0.0f, 2.0f, 0.5f, 6);
-            // Vertex data for this vertex only
-            positions.push_back(Vector3(x, y, z));
-            textureCoordinates.push_back(Vector2(i, j));
-
             // Index data for quad formed by previous vertices and current
             if (i > 0 && j > 0)
             {
@@ -62,12 +63,20 @@ void TerrainApplication::Initialize()
                 indices.push_back(top_right);
             }
 
+            Vector3 pos(x, y, z);
+            Vector2 textCoordinate(i,j);
+            Vertex v;
+
+            v.position = pos;
+            v.textureCoordinate = textCoordinate;
+
             if(z < 0.5) {
-                colors.push_back(green);
+                v.color = green;
             } else {
-                colors.push_back(red);
+                v.color = red;
             }
 
+            vertices.push_back(v);
         }
     }
 
@@ -76,26 +85,14 @@ void TerrainApplication::Initialize()
     VertexAttribute texCoordAttribute(Data::Type::Float, 2);
     VertexAttribute colorAttribute(Data::Type::Float, 3);
 
-    // Compute offsets inside the buffer
-    unsigned int vertexCount = positions.size(); // all attributes have the same vertex count
-    size_t positionsOffset = 0u;
-    size_t texCoordsOffset = positionsOffset + vertexCount * positionAttribute.GetSize();
-    size_t colorsOffset = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
-    size_t totalSize = colorsOffset + vertexCount * colorAttribute.GetSize();
-
     m_vbo.Bind();
-    m_vbo.AllocateData(totalSize);
-
-    // Initialize data in the VBO with all the attributes
-    m_vbo.UpdateData(std::span(positions), positionsOffset);
-    m_vbo.UpdateData(std::span(textureCoordinates), texCoordsOffset);
-    m_vbo.UpdateData(std::span(colors), colorsOffset);
+    m_vbo.AllocateData(std::span(vertices));
 
     m_vao.Bind();
 
-    m_vao.SetAttribute(0, positionAttribute, positionsOffset);
-    m_vao.SetAttribute(1, texCoordAttribute, texCoordsOffset);
-    m_vao.SetAttribute(2, colorAttribute, colorsOffset);
+    m_vao.SetAttribute(0, positionAttribute, 0, sizeof(Vertex));
+    m_vao.SetAttribute(1, texCoordAttribute, positionAttribute.GetSize(), sizeof(Vertex));
+    m_vao.SetAttribute(2, colorAttribute, positionAttribute.GetSize() + texCoordAttribute.GetSize(), sizeof(Vertex));
 
     // (todo) 01.5: Initialize EBO
     m_ebo.Bind();
