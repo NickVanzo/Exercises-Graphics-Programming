@@ -15,12 +15,15 @@ TerrainApplication::TerrainApplication()
 
 void TerrainApplication::Initialize()
 {
+    const Vector3 green(0,255,0);
+    const Vector3 red(0,0,255);
     Application::Initialize();
 
     BuildShaderProgram();
 
     // (todo) 01.1: Create containers for the vertex position
     std::vector<Vector3> positions;
+    std::vector<Vector3> colors;
     std::vector<Vector2> textureCoordinates;
     std::vector<unsigned int> indices;
 
@@ -28,7 +31,6 @@ void TerrainApplication::Initialize()
     unsigned int rowCount = m_gridY + 1;
 
     Vector2 gridSize(1.0f/m_gridX, 1.0f/m_gridY);
-    float offset = 0.5;
 
     for (int j = 0; j < rowCount; ++j)
     {
@@ -59,19 +61,27 @@ void TerrainApplication::Initialize()
                 indices.push_back(top_left);
                 indices.push_back(top_right);
             }
+
+            if(z < 0.5) {
+                colors.push_back(green);
+            } else {
+                colors.push_back(red);
+            }
+
         }
     }
 
 // Declare attributes
     VertexAttribute positionAttribute(Data::Type::Float, 3);
     VertexAttribute texCoordAttribute(Data::Type::Float, 2);
+    VertexAttribute colorAttribute(Data::Type::Float, 3);
 
     // Compute offsets inside the buffer
     unsigned int vertexCount = positions.size(); // all attributes have the same vertex count
     size_t positionsOffset = 0u;
     size_t texCoordsOffset = positionsOffset + vertexCount * positionAttribute.GetSize();
-    size_t totalSize = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
-
+    size_t colorsOffset = texCoordsOffset + vertexCount * texCoordAttribute.GetSize();
+    size_t totalSize = colorsOffset + vertexCount * colorAttribute.GetSize();
 
     m_vbo.Bind();
     m_vbo.AllocateData(totalSize);
@@ -79,11 +89,13 @@ void TerrainApplication::Initialize()
     // Initialize data in the VBO with all the attributes
     m_vbo.UpdateData(std::span(positions), positionsOffset);
     m_vbo.UpdateData(std::span(textureCoordinates), texCoordsOffset);
+    m_vbo.UpdateData(std::span(colors), colorsOffset);
 
     m_vao.Bind();
 
     m_vao.SetAttribute(0, positionAttribute, positionsOffset);
     m_vao.SetAttribute(1, texCoordAttribute, texCoordsOffset);
+    m_vao.SetAttribute(2, colorAttribute, colorsOffset);
 
     // (todo) 01.5: Initialize EBO
     m_ebo.Bind();
@@ -97,6 +109,7 @@ void TerrainApplication::Initialize()
     // (todo) 01.5: Unbind EBO
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void TerrainApplication::Update()
