@@ -117,7 +117,7 @@ void TerrainApplication::Initialize()
     }
 
 
-// Declare attributes
+    // Declare attributes
     VertexAttribute positionAttribute(Data::Type::Float, 3);
     VertexAttribute texCoordAttribute(Data::Type::Float, 2);
     VertexAttribute colorAttribute(Data::Type::Float, 3);
