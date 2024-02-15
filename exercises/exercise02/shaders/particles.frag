@@ -11,4 +11,5 @@ void main()
 
     intensity = 1 - length(gl_PointCoord * 2 - 1);
 	FragColor = vec4(1,1,1,intensity);
+
 }

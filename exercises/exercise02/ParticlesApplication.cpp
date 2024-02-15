@@ -14,15 +14,19 @@ struct Particle
     glm::vec2 position;
     // (todo) 02.X: Add more vertex attributes
     float size;
-
+    float birth;
+    float duration;
 };
 
 // List of attributes of the particle. Must match the structure above
-const std::array<VertexAttribute, 2> s_vertexAttributes =
+const std::array<VertexAttribute, 5> s_vertexAttributes =
 {
     VertexAttribute(Data::Type::Float, 2), // position
     // (todo) 02.X: Add more vertex attributes
-    VertexAttribute(Data::Type::Float, 1) // size
+    VertexAttribute(Data::Type::Float, 1), // size
+    VertexAttribute(Data::Type::Float, 1), // birth
+    VertexAttribute(Data::Type::Float, 1), // duration
+    VertexAttribute(Data::Type::Float, 1) // duration
 };
 
 
@@ -68,7 +72,7 @@ void ParticlesApplication::Update()
     if (window.IsMouseButtonPressed(Window::MouseButton::Left))
     {
         // (todo) 02.X: Compute new particle attributes here
-        EmitParticle(mousePosition, RandomRange(1, 90));
+        EmitParticle(mousePosition, RandomRange(1, 90), RandomRange(1, 10));
     }
 
     // save the mouse position (to compare next frame and obtain velocity)
@@ -84,7 +88,7 @@ void ParticlesApplication::Render()
     m_shaderProgram.Use();
 
     // (todo) 02.4: Set CurrentTime uniform
-
+    m_shaderProgram.SetUniform(m_shaderProgram.GetUniformLocation("CurrentTime"), GetCurrentTime());
 
     // (todo) 02.6: Set Gravity uniform
 
@@ -144,11 +148,13 @@ void ParticlesApplication::InitializeShaders()
     }
 }
 
-void ParticlesApplication::EmitParticle(const glm::vec2& position, const float size)
+void ParticlesApplication::EmitParticle(const glm::vec2& position, const float size, const float duration)
 {
     // Initialize the particle
     Particle particle;
     particle.position = position;
+    particle.birth = GetCurrentTime();
+    particle.duration = duration;
 
     // (todo) 02.X: Set the value for other attributes of the particle
     particle.size = size;
