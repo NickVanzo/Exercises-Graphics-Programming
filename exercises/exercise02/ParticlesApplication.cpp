@@ -44,6 +44,9 @@ void ParticlesApplication::Initialize()
 
     // (todo) 02.2: Enable the GL_PROGRAM_POINT_SIZE feature on the device
     GetDevice().SetFeatureEnabled(GL_PROGRAM_POINT_SIZE, true);
+    GetDevice().SetFeatureEnabled(GL_BLEND, true);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
 
     // (todo) 02.3: Enable the GL_BLEND feature on the device
 
