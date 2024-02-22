@@ -17,16 +17,19 @@ struct Particle
     float birth;
     float duration;
     Color color;
+    glm::vec2 velocity;
 };
 
 // List of attributes of the particle. Must match the structure above
-const std::array<VertexAttribute, 5> s_vertexAttributes =
+const std::array<VertexAttribute, 6> s_vertexAttributes =
 {
     VertexAttribute(Data::Type::Float, 2), // position
     VertexAttribute(Data::Type::Float, 1), // size
     VertexAttribute(Data::Type::Float, 1), // birth
     VertexAttribute(Data::Type::Float, 1), // duration
-    VertexAttribute(Data::Type::Float, 4) // color
+    VertexAttribute(Data::Type::Float, 4), // color
+        VertexAttribute(Data::Type::Float, 2) // velocity
+
 };
 
 
@@ -91,7 +94,7 @@ void ParticlesApplication::Render()
     m_shaderProgram.SetUniform(m_shaderProgram.GetUniformLocation("CurrentTime"), GetCurrentTime());
 
     // (todo) 02.6: Set Gravity uniform
-
+    m_shaderProgram.SetUniform(m_shaderProgram.GetUniformLocation("Gravity"), glm::vec2(0, -9.81));
 
     // Bind the particle system VAO
     m_vao.Bind();
@@ -156,6 +159,7 @@ void ParticlesApplication::EmitParticle(const glm::vec2& position, const float s
     particle.birth = GetCurrentTime();
     particle.duration = duration;
     particle.color = color;
+    particle.velocity = (0.5f * (position - m_mousePosition) / GetDeltaTime());
 
     // (todo) 02.X: Set the value for other attributes of the particle
     particle.size = size;
