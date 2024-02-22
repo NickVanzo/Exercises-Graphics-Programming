@@ -50,13 +50,17 @@ void GearsApplication::Render()
 
     // (todo) 03.5: Set the view projection matrix from the camera. Once set, we will use it for all the objects
 
-
     // (todo) 03.1: Draw large gear at the center
     glm::mat4 centerGearMatrix(1.0f);
     auto rotationTransformation = glm::rotate(centerGearMatrix, 1 * GetCurrentTime(), glm::vec3(0,0,1));
     DrawGear(m_largeGear, rotationTransformation, Color(1.0f, 1.0f, 1.0f));
 
     // (todo) 03.2: Draw medium gear to the right
+
+    auto translation = glm::translate(centerGearMatrix, glm::vec3(0.75f, 0,0));
+    auto rotation = glm::rotate(translation, - 2 * GetCurrentTime(), glm::vec3(0,0,1));
+
+    DrawGear(m_mediumGear, rotation, Color(1.0f, 0.50f, 0.50f));
 
     // (todo) 03.3: Draw small gear at the top-left corner
 
