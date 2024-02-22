@@ -123,6 +123,8 @@ private:
     template<typename T, int C, int R>
     void SetUniforms(Location location, const T* values, GLsizei count);
 
+    
+
 private:
 #ifndef NDEBUG
     inline bool IsUsed() const { return s_usedHandle == GetHandle(); }
