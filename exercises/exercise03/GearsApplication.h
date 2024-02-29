@@ -53,8 +53,8 @@ private:
     ShaderProgram::Location m_worldPosition;
 
     // (todo) 03.5: Add the viewProj matrix uniform
-
+    ShaderProgram::Location m_viewProjMatrix;
 
     // (todo) 03.4: Add the camera
-
+    Camera camera;
 };
