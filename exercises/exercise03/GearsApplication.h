@@ -4,6 +4,7 @@
 
 #include <ituGL/shader/ShaderProgram.h>
 #include <ituGL/geometry/Mesh.h>
+#include <ituGL/camera/Camera.h>
 
 class GearsApplication : public Application
 {

@@ -2,7 +2,6 @@
 
 #include <ituGL/core/DeviceGL.h>
 #include <ituGL/application/Window.h>
-#include <ituGL/camera/Camera.h>
 #include <string>
 
 class Application
@@ -77,6 +76,4 @@ private:
     int m_exitCode;
     // Error message to display on exit
     std::string m_errorMessage;
-    Camera m_camera;
-
 };
