@@ -11,6 +11,7 @@
 #include <vector>   // to store vertices and indices
 #include <numbers>  // for PI constant
 #include <glm/gtx/transform.hpp>  // for matrix transformations
+#include <math.h>
 
 GearsApplication::GearsApplication()
     : Application(1024, 1024, "Gears demo")
@@ -43,7 +44,8 @@ void GearsApplication::Update()
 
     float aspectRatio = static_cast<float> (width) / height;
     glm::vec3 halfSize(aspectRatio, 1.0f, 10.0f);
-    camera.SetOrthographicProjectionMatrix(-halfSize, halfSize);
+    float FOV = M_PI / 2;
+    camera.SetPerspectiveProjectionMatrix(FOV, aspectRatio, 0.1, 10);
 
     auto mousePos = window.GetMousePosition(true);
     camera.SetViewMatrix(glm::vec3 (0,0,1), glm::vec3 (mousePos, 0));
@@ -74,9 +76,10 @@ void GearsApplication::Render()
 
     // (todo) 03.3: Draw small gear at the top-left corner
     auto translation_3 = glm::translate(centerGearMatrix, glm::vec3(-1, 1, 0));
-    auto scale_3 = glm::scale(translation_3, glm::vec3(7.5, 7.5, 0));
-    auto rotate_3 = glm::rotate(scale_3, - 0.535f * GetCurrentTime(), glm::vec3 (0,0,1));
-    DrawGear(m_smallGear, rotate_3, Color(0.0f, 0.50f, 0.50f));
+    auto rotate_3 = glm::rotate(translation_3, 0.535f * GetCurrentTime(), glm::vec3 (0,0,-1));
+    auto scale_3 = glm::scale(rotate_3, glm::vec3(7.5, 7.5, 0));
+
+    DrawGear(m_smallGear, scale_3, Color(1.0f, 0.50f, 0.50f));
 
     // (todo) 03.4: Draw small gear linked to the center gear
     auto translation_4 = glm::translate(rotationTransformation, glm::vec3(0, 0.2, 0));
