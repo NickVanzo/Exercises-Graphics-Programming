@@ -173,13 +173,17 @@ std::shared_ptr<Texture2DObject> TexturedTerrainApplication::CreateHeightMap(uns
 {
     std::shared_ptr<Texture2DObject> heightmap = std::make_shared<Texture2DObject>();
 
-    std::vector<float> pixels;
+    std::vector<float> pixels(height * width);
     for (unsigned int j = 0; j < height; ++j)
     {
         for (unsigned int i = 0; i < width; ++i)
         {
             // (todo) 04.1: Add pixel data
-            pixels.push_back(std::sin(0.1f * i) * 0.1f);
+            float x = static_cast<float>(i) / (width - 1) + coords.x;
+            float y = static_cast<float>(j) / (height - 1) + coords.y;
+
+            pixels[j * width + i] = stb_perlin_fbm_noise3(x, y, 0.0f, 1.9f, 0.5f, 8) * 0.5f;
+
         }
     }
 
