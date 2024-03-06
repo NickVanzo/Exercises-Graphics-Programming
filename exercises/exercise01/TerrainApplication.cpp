@@ -44,7 +44,7 @@ void TerrainApplication::Initialize()
 
             auto x = i * gridSize.x - 0.5f;
             auto y = j * gridSize.y - 0.5f;
-            auto z = stb_perlin_fbm_noise3(x, y, 0.0f, 2.0f, 0.5f, 6);
+            auto z = (x, y, 0.0f, 2.0f, 0.5f, 6);
             // Index data for quad formed by previous vertices and current
             if (i > 0 && j > 0)
             {

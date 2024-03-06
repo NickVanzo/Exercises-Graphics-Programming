@@ -40,7 +40,7 @@ void TexturedTerrainApplication::Initialize()
     GetDevice().EnableFeature(GL_DEPTH_TEST);
 
     //Enable wireframe
-    GetDevice().SetWireframeEnabled(true);
+//    GetDevice().SetWireframeEnabled(false);
 }
 
 void TexturedTerrainApplication::Update()
@@ -66,10 +66,11 @@ void TexturedTerrainApplication::Render()
     GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
 
     // Terrain patches
+    glm::mat4 worldMatrix = glm::mat4(1.0f);
     DrawObject(m_terrainPatch, *m_heightmapMaterial, glm::scale(glm::vec3(10.0f)));
-
-    // (todo) 04.2: Add more patches here
-    
+    DrawObject(m_terrainPatch, *m_heightmapMaterial2, glm::translate(glm::vec3(-10, 0, 0)) * glm::scale(glm::vec3(10.0f)));
+    DrawObject(m_terrainPatch, *m_heightmapMaterial2, glm::translate(glm::vec3(0, 0, -10)) * glm::scale(glm::vec3(10.0f)));
+    DrawObject(m_terrainPatch, *m_heightmapMaterial2, glm::translate(glm::vec3(-10, 0, -10)) * glm::scale(glm::vec3(10.0f)));
 
     // Water patches
     // (todo) 04.5: Add water planes
@@ -79,7 +80,15 @@ void TexturedTerrainApplication::Render()
 void TexturedTerrainApplication::InitializeTextures()
 {
     m_defaultTexture = CreateDefaultTexture();
-    m_heightmapTexture = CreateHeightMap(m_gridX,m_gridY, {});
+    m_dirtTexture = LoadTexture("textures/dirt.png");
+    m_snowTexture = LoadTexture("texture/snow.jpg");
+    m_grassTexture = LoadTexture("texture/grass.jpg");
+    m_rockTexture = LoadTexture("texture/rock.jpg");
+
+    m_heightmapTexture = CreateHeightMap(m_gridX,m_gridY, glm::ivec2 (0,0));
+    m_heightmapTexture3 = CreateHeightMap(m_gridX,m_gridY, glm::ivec2(-1,0));
+    m_heightmapTexture2 = CreateHeightMap(m_gridX,m_gridY, glm::ivec2(0,-1));
+    m_heightmapTexture4 = CreateHeightMap(m_gridX,m_gridY, glm::ivec2(-1,-1));
 
     // (todo) 04.3: Load terrain textures here
 
@@ -106,10 +115,28 @@ void TexturedTerrainApplication::InitializeMaterials()
     m_defaultMaterial = std::make_shared<Material>(defaultShaderProgram);
     m_defaultMaterial->SetUniformValue("Color", glm::vec4(1.0f));
 
+
     // (todo) 04.1: Add terrain shader and material here
     m_heightmapMaterial = std::make_shared<Material>(terrainShaderProgram);
     m_heightmapMaterial->SetUniformValue("Color", glm::vec4(1.0f));
-    m_heightmapMaterial->SetUniformValue("Color", glm::vec4(1.0f));
+    m_heightmapMaterial->SetUniformValue("ColorTexture", m_dirtTexture);
+    m_heightmapMaterial->SetUniformValue("ColorTextureScale", glm::vec2(0.125f));
+    m_heightmapMaterial->SetUniformValue("Heightmap", m_heightmapTexture);
+    m_heightmapMaterial->SetUniformValue("ColorTextureRange01", glm::vec2(-0.2f, 0.0f));
+    m_heightmapMaterial->SetUniformValue("ColorTextureRange12", glm::vec2(0.1f, 0.2f));
+    m_heightmapMaterial->SetUniformValue("ColorTextureRange23", glm::vec2(0.25f, 0.3f));
+
+    m_heightmapMaterial2 = std::make_shared<Material>(*m_heightmapMaterial);
+    m_heightmapMaterial2->SetUniformValue("Heightmap", m_heightmapTexture2);
+    m_heightmapMaterial2->SetUniformValue("ColorTexture", m_snowTexture);
+
+    m_heightmapMaterial3 = std::make_shared<Material>(*m_heightmapMaterial);
+    m_heightmapMaterial3->SetUniformValue("Heightmap", m_heightmapTexture3);
+    m_heightmapMaterial3->SetUniformValue("ColorTexture", m_rockTexture);
+
+    m_heightmapMaterial4 = std::make_shared<Material>(*m_heightmapMaterial);
+    m_heightmapMaterial4->SetUniformValue("Heightmap", m_heightmapTexture4);
+    m_heightmapMaterial4->SetUniformValue("ColorTexture", m_grassTexture);
 
     // (todo) 04.5: Add water shader and material here
 
@@ -155,16 +182,16 @@ std::shared_ptr<Texture2DObject> TexturedTerrainApplication::LoadTexture(const c
     
     
     // (todo) 04.3: Load the texture data here
-    unsigned char* data = nullptr;
+    unsigned char* data = stbi_load(path, &width, &height, &components, 4);
 
     texture->Bind();
     texture->SetImage(0, width, height, TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA, std::span<const unsigned char>(data, width * height * 4));
 
     // (todo) 04.3: Generate mipmaps
-
+    texture->GenerateMipmap();
 
     // (todo) 04.3: Release texture data
-
+    stbi_image_free(data);
 
     return texture;
 }
