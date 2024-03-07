@@ -50,6 +50,7 @@ private:
     std::shared_ptr<Material> m_heightmapMaterial2;
     std::shared_ptr<Material> m_heightmapMaterial3;
     std::shared_ptr<Material> m_heightmapMaterial4;
+    std::shared_ptr<Material> m_waterMaterial;
 
     // (todo) 04.X: Add additional textures
     std::shared_ptr<Texture2DObject> m_defaultTexture;
@@ -63,4 +64,5 @@ private:
     std::shared_ptr<Texture2DObject> m_grassTexture;
     std::shared_ptr<Texture2DObject> m_rockTexture;
     std::shared_ptr<Texture2DObject> m_snowTexture;
+    std::shared_ptr<Texture2DObject> m_waterTexture;
 };
