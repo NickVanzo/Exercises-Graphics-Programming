@@ -10,7 +10,7 @@ Texture2DLoader::Texture2DLoader()
 
 Texture2DLoader::Texture2DLoader(TextureObject::Format format, TextureObject::InternalFormat internalFormat)
     : TextureLoader(format, internalFormat)
-    , m_flipVertical(false)
+    , m_flipVertical(true)
 {
 }
 

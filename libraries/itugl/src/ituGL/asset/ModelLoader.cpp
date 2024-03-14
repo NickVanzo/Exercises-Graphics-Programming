@@ -10,7 +10,7 @@
 
 ModelLoader::ModelLoader(std::shared_ptr<Material> referenceMaterial)
     : m_referenceMaterial(referenceMaterial)
-    , m_createMaterials(false)
+    , m_createMaterials(true)
 {
 }
 

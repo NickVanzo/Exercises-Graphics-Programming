@@ -42,9 +42,12 @@ private:
     float m_cameraRotationSpeed;
     bool m_cameraEnabled;
     bool m_cameraEnablePressed;
+    glm::vec3 m_ambientColor;
 
     // Loaded model
     Model m_model;
+
+    std::shared_ptr<Texture2DObject> m_waterTexture;
 
     // (todo) 05.X: Add light variables
 
