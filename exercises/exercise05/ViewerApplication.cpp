@@ -6,6 +6,7 @@
 #include <ituGL/shader/Material.h>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
+#include <imgui.h>
 
 ViewerApplication::ViewerApplication()
     : Application(1024, 1024, "Viewer demo")
@@ -49,11 +50,11 @@ void ViewerApplication::Update()
 void ViewerApplication::Render()
 {
     Application::Render();
-
     // Clear color and depth
     GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
 
     m_model.Draw();
+    RenderGUI();
 }
 
 void ViewerApplication::Cleanup()
@@ -148,6 +149,10 @@ void ViewerApplication::RenderGUI()
     m_imGui.BeginFrame();
 
     // (todo) 05.4: Add debug controls for light properties
+    ImGui::DragFloat("Light intensity", &m_lightIntensity);
+    ImGui::DragFloat3("Light position", &m_lightPosition.x);
+    ImGui::ColorEdit3("Light color", &m_lightColor.r);
+    ImGui::ColorEdit3("Ambient color", &m_ambientColor.r);
 
     m_imGui.EndFrame();
 }
