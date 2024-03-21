@@ -10,7 +10,7 @@ Texture2DLoader::Texture2DLoader()
 
 Texture2DLoader::Texture2DLoader(TextureObject::Format format, TextureObject::InternalFormat internalFormat)
     : TextureLoader(format, internalFormat)
-    , m_flipVertical(true)
+    , m_flipVertical(false)
 {
 }
 
@@ -50,4 +50,12 @@ Texture2DObject Texture2DLoader::Load(const char* path)
         stbi_image_free(data);
     }
     return texture2D;
+}
+
+std::shared_ptr<Texture2DObject> Texture2DLoader::LoadTextureShared(const char* path,
+    TextureObject::Format format, TextureObject::InternalFormat internalFormat, bool generateMipmap)
+{
+    Texture2DLoader loader(format, internalFormat);
+    loader.SetGenerateMipmap(true);
+    return loader.LoadShared(path);
 }
