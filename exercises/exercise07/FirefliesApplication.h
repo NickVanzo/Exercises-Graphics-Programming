@@ -81,6 +81,7 @@ private:
     // Add light variables
     glm::vec3 m_ambientColor;
     glm::vec3 m_lightColor;
+    glm::vec4 m_attenuation;
     float m_lightIntensity;
     bool m_useRandomColor;
 

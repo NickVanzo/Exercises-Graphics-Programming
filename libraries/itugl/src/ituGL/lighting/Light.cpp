@@ -32,9 +32,10 @@ void Light::SetDirection(const glm::vec3& direction)
 {
 }
 
+// For now I'll leave this fixed, later on I will update it using the ImGUI
 glm::vec4 Light::GetAttenuation() const
 {
-    return glm::vec4(-1);
+    return glm::vec4(10.0f);
 }
 
 glm::vec3 Light::GetColor() const

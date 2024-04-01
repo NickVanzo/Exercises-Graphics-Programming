@@ -37,4 +37,5 @@ public:
 private:
     glm::vec3 m_color;
     float m_intensity;
+    glm::vec4 m_attenuation;
 };
