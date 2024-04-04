@@ -13,8 +13,8 @@ uniform mat4 ViewProjMatrix;
 
 void main()
 {
-    WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
-    WorldNormal = normalize((WorldMatrix * vec4(VertexNormal, 0.0)).xyz);
-    TexCoord = VertexTexCoord;
-    gl_Position = ViewProjMatrix * vec4(WorldPosition, 1.0);
+	WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
+	WorldNormal = normalize((WorldMatrix * vec4(VertexNormal, 0.0)).xyz);
+	TexCoord = VertexTexCoord;
+	gl_Position = ViewProjMatrix * vec4(WorldPosition, 1.0);
 }

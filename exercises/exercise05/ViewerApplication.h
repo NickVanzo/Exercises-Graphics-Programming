@@ -43,21 +43,15 @@ private:
     bool m_cameraEnabled;
     bool m_cameraEnablePressed;
 
-    // Lights variables
+    // Loaded model
+    Model m_model;
+
+    // Add light variables
     glm::vec3 m_ambientColor;
     glm::vec3 m_lightColor;
     float m_lightIntensity;
     glm::vec3 m_lightPosition;
-    float m_specularReflection;
-    float m_specularExponent;
 
-    // Loaded model
-    Model m_model;
-
-    std::shared_ptr<Texture2DObject> m_waterTexture;
-
-    // (todo) 05.X: Add light variables
-
-
-
+    // Specular exponent debug
+    float m_specularExponentGrass;
 };

@@ -17,11 +17,10 @@ ViewerApplication::ViewerApplication()
     , m_cameraEnablePressed(false)
     , m_mousePosition(GetMainWindow().GetMousePosition(true))
     , m_ambientColor(0.0f)
-    , m_lightIntensity(0.0f)
     , m_lightColor(0.0f)
+    , m_lightIntensity(0.0f)
     , m_lightPosition(0.0f)
-    , m_specularReflection(0.0f)
-    , m_specularExponent(0.0f)
+    , m_specularExponentGrass(100.0f)
 {
 }
 
@@ -48,16 +47,20 @@ void ViewerApplication::Update()
     // Update camera controller
     UpdateCamera();
 
-    m_model.GetMaterial(1).SetUniformValue("SpecularExponent", m_specularExponent);
+    // Update specular exponent for grass material
+    m_model.GetMaterial(1).SetUniformValue("SpecularExponent", m_specularExponentGrass);
 }
 
 void ViewerApplication::Render()
 {
     Application::Render();
+
     // Clear color and depth
     GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
 
     m_model.Draw();
+
+    // Render the debug user interface
     RenderGUI();
 }
 
@@ -74,7 +77,6 @@ void ViewerApplication::InitializeModel()
     // Load and build shader
     Shader vertexShader = ShaderLoader::Load(Shader::VertexShader, "shaders/blinn-phong.vert");
     Shader fragmentShader = ShaderLoader::Load(Shader::FragmentShader, "shaders/blinn-phong.frag");
-
     std::shared_ptr<ShaderProgram> shaderProgram = std::make_shared<ShaderProgram>();
     shaderProgram->Build(vertexShader, fragmentShader);
 
@@ -84,8 +86,6 @@ void ViewerApplication::InitializeModel()
     filteredUniforms.insert("ViewProjMatrix");
     filteredUniforms.insert("AmbientColor");
     filteredUniforms.insert("LightColor");
-    filteredUniforms.insert("CameraPosition");
-
 
     // Create reference material
     std::shared_ptr<Material> material = std::make_shared<Material>(shaderProgram, filteredUniforms);
@@ -94,6 +94,7 @@ void ViewerApplication::InitializeModel()
     material->SetUniformValue("DiffuseReflection", 1.0f);
     material->SetUniformValue("SpecularReflection", 1.0f);
     material->SetUniformValue("SpecularExponent", 100.0f);
+
     // Setup function
     ShaderProgram::Location worldMatrixLocation = shaderProgram->GetUniformLocation("WorldMatrix");
     ShaderProgram::Location viewProjMatrixLocation = shaderProgram->GetUniformLocation("ViewProjMatrix");
@@ -101,13 +102,12 @@ void ViewerApplication::InitializeModel()
     ShaderProgram::Location lightColorLocation = shaderProgram->GetUniformLocation("LightColor");
     ShaderProgram::Location lightPositionLocation = shaderProgram->GetUniformLocation("LightPosition");
     ShaderProgram::Location cameraPositionLocation = shaderProgram->GetUniformLocation("CameraPosition");
-
     material->SetShaderSetupFunction([=](ShaderProgram& shaderProgram)
         {
             shaderProgram.SetUniform(worldMatrixLocation, glm::scale(glm::vec3(0.1f)));
             shaderProgram.SetUniform(viewProjMatrixLocation, m_camera.GetViewProjectionMatrix());
 
-            // (todo) 05.X: Set camera and light uniforms
+            // Set camera and light uniforms
             shaderProgram.SetUniform(ambientColorLocation, m_ambientColor);
             shaderProgram.SetUniform(lightColorLocation, m_lightColor * m_lightIntensity);
             shaderProgram.SetUniform(lightPositionLocation, m_lightPosition);
@@ -116,22 +116,20 @@ void ViewerApplication::InitializeModel()
 
     // Configure loader
     ModelLoader loader(material);
+    loader.SetCreateMaterials(true);
     loader.SetMaterialAttribute(VertexAttribute::Semantic::Position, "VertexPosition");
     loader.SetMaterialAttribute(VertexAttribute::Semantic::Normal, "VertexNormal");
     loader.SetMaterialAttribute(VertexAttribute::Semantic::TexCoord0, "VertexTexCoord");
 
     // Load model
-    Texture2DLoader textureLoader(TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA);
     m_model = loader.Load("models/mill/Mill.obj");
 
-    // (todo) 05.1: Load and set textures
-
-    m_model.GetMaterial(0).SetUniformValue("Color", glm::vec4(0.5f));
-    m_model.GetMaterial(0).SetUniformValue("ColorTexture",  textureLoader.LoadShared("models/mill/Ground_shadow.jpg"));
-    m_model.GetMaterial(1).SetUniformValue("Color", glm::vec4(0.7f));
-    m_model.GetMaterial(1).SetUniformValue("ColorTexture",  textureLoader.LoadShared("models/mill/Ground_color.jpg"));
-    m_model.GetMaterial(2).SetUniformValue("Color", glm::vec4(0.9f));
-    m_model.GetMaterial(2).SetUniformValue("ColorTexture",  textureLoader.LoadShared("models/mill/MillCat_color.jpg"));
+    // Load and set textures
+    Texture2DLoader textureLoader(TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
+    textureLoader.SetFlipVertical(true);
+    m_model.GetMaterial(0).SetUniformValue("ColorTexture", textureLoader.LoadShared("models/mill/Ground_shadow.jpg"));
+    m_model.GetMaterial(1).SetUniformValue("ColorTexture", textureLoader.LoadShared("models/mill/Ground_color.jpg"));
+    m_model.GetMaterial(2).SetUniformValue("ColorTexture", textureLoader.LoadShared("models/mill/MillCat_color.jpg"));
 }
 
 void ViewerApplication::InitializeCamera()
@@ -146,25 +144,25 @@ void ViewerApplication::InitializeCamera()
 
 void ViewerApplication::InitializeLights()
 {
-    // (todo) 05.X: Initialize light variables
-    m_ambientColor = glm::vec3(0.5f);
+    // Initialize light variables
+    m_ambientColor = glm::vec3(0.25f);
     m_lightColor = glm::vec3(1.0f);
-    m_lightPosition = glm::vec3(-50.0f, 20.0f, 10.0f);
-    m_specularExponent = 100.0f;
     m_lightIntensity = 1.0f;
-    m_specularReflection = 1.0f;
+    m_lightPosition = glm::vec3(-10.0f, 20.0f, 10.0f);
 }
 
 void ViewerApplication::RenderGUI()
 {
     m_imGui.BeginFrame();
 
-    // (todo) 05.4: Add debug controls for light properties
-    ImGui::DragFloat("Light intensity", &m_lightIntensity);
-    ImGui::DragFloat3("Light position", &m_lightPosition.x);
-    ImGui::ColorEdit3("Light color", &m_lightColor.r);
-    ImGui::ColorEdit3("Ambient color", &m_ambientColor.r);
-    ImGui::DragFloat("Specular exponent (grass)", &m_specularExponent, 1.0f, 0.0f, 1000.0f);
+    // Add debug controls for light properties
+    ImGui::ColorEdit3("Ambient color", &m_ambientColor[0]);
+    ImGui::Separator();
+    ImGui::DragFloat3("Light position", &m_lightPosition[0], 0.1f);
+    ImGui::ColorEdit3("Light color", &m_lightColor[0]);
+    ImGui::DragFloat("Light intensity", &m_lightIntensity, 0.05f, 0.0f, 100.0f);
+    ImGui::Separator();
+    ImGui::DragFloat("Specular exponent (grass)", &m_specularExponentGrass, 1.0f, 0.0f, 1000.0f);
 
     m_imGui.EndFrame();
 }
