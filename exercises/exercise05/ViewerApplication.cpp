@@ -46,9 +46,6 @@ void ViewerApplication::Update()
 
     // Update camera controller
     UpdateCamera();
-
-    // Update specular exponent for grass material
-    m_model.GetMaterial(1).SetUniformValue("SpecularExponent", m_specularExponentGrass);
 }
 
 void ViewerApplication::Render()
@@ -57,8 +54,6 @@ void ViewerApplication::Render()
 
     // Clear color and depth
     GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
-
-    m_model.Draw();
 
     // Render the debug user interface
     RenderGUI();
@@ -121,15 +116,9 @@ void ViewerApplication::InitializeModel()
     loader.SetMaterialAttribute(VertexAttribute::Semantic::Normal, "VertexNormal");
     loader.SetMaterialAttribute(VertexAttribute::Semantic::TexCoord0, "VertexTexCoord");
 
-    // Load model
-    m_model = loader.Load("models/mill/Mill.obj");
-
     // Load and set textures
     Texture2DLoader textureLoader(TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
     textureLoader.SetFlipVertical(true);
-    m_model.GetMaterial(0).SetUniformValue("ColorTexture", textureLoader.LoadShared("models/mill/Ground_shadow.jpg"));
-    m_model.GetMaterial(1).SetUniformValue("ColorTexture", textureLoader.LoadShared("models/mill/Ground_color.jpg"));
-    m_model.GetMaterial(2).SetUniformValue("ColorTexture", textureLoader.LoadShared("models/mill/MillCat_color.jpg"));
 }
 
 void ViewerApplication::InitializeCamera()
@@ -154,16 +143,6 @@ void ViewerApplication::InitializeLights()
 void ViewerApplication::RenderGUI()
 {
     m_imGui.BeginFrame();
-
-    // Add debug controls for light properties
-    ImGui::ColorEdit3("Ambient color", &m_ambientColor[0]);
-    ImGui::Separator();
-    ImGui::DragFloat3("Light position", &m_lightPosition[0], 0.1f);
-    ImGui::ColorEdit3("Light color", &m_lightColor[0]);
-    ImGui::DragFloat("Light intensity", &m_lightIntensity, 0.05f, 0.0f, 100.0f);
-    ImGui::Separator();
-    ImGui::DragFloat("Specular exponent (grass)", &m_specularExponentGrass, 1.0f, 0.0f, 1000.0f);
-
     m_imGui.EndFrame();
 }
 
