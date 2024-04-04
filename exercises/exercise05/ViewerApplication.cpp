@@ -7,6 +7,8 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
 #include <imgui.h>
+#include "Vector3.h"
+
 
 ViewerApplication::ViewerApplication()
     : Application(1024, 1024, "Viewer demo")
@@ -22,6 +24,7 @@ ViewerApplication::ViewerApplication()
     , m_lightPosition(0.0f)
     , m_specularExponentGrass(100.0f)
 {
+
 }
 
 void ViewerApplication::Initialize()
@@ -31,14 +34,39 @@ void ViewerApplication::Initialize()
     // Initialize DearImGUI
     m_imGui.Initialize(GetMainWindow());
 
-    InitializeModel();
+    GenerateVertexData();
     InitializeCamera();
+    InitializeShaders();
     InitializeLights();
 
     DeviceGL& device = GetDevice();
     device.EnableFeature(GL_DEPTH_TEST);
     device.SetVSyncEnabled(true);
 }
+
+void ViewerApplication::GenerateVertexData() {
+    std::vector<Vertex> vertices;
+
+    //For now I just need to render one cube, TODO: add more cubes
+    Vector3 pos(0,0,0);
+    Vertex v;
+    v.position = pos;
+
+    vertices.push_back(v);
+
+    VertexAttribute positionAttribute(Data::Type::Float, 3);
+
+    m_vbo.Bind();
+    m_vbo.AllocateData(std::span(vertices));
+    m_vao.Bind();
+
+    float posOffset = 0u;
+    m_vao.SetAttribute(0, positionAttribute, posOffset, sizeof(Vertex));
+
+    m_vbo.Unbind();
+    m_vao.Unbind();
+}
+
 
 void ViewerApplication::Update()
 {
@@ -67,58 +95,27 @@ void ViewerApplication::Cleanup()
     Application::Cleanup();
 }
 
-void ViewerApplication::InitializeModel()
-{
-    // Load and build shader
-    Shader vertexShader = ShaderLoader::Load(Shader::VertexShader, "shaders/blinn-phong.vert");
-    Shader fragmentShader = ShaderLoader::Load(Shader::FragmentShader, "shaders/blinn-phong.frag");
-    std::shared_ptr<ShaderProgram> shaderProgram = std::make_shared<ShaderProgram>();
-    shaderProgram->Build(vertexShader, fragmentShader);
+void ViewerApplication::InitializeShaders() {
+    Shader vertexShader = ShaderLoader::Load(Shader::VertexShader, "shaders/cube.vert");
+    Shader fragmentShader = ShaderLoader::Load(Shader::FragmentShader, "shaders/cube.frag");
+    Shader geometryShader = ShaderLoader::Load(Shader::GeometryShader, "shaders/cube.geom");
 
-    // Filter out uniforms that are not material properties
+    std::shared_ptr<ShaderProgram> shaderProgram = std::make_shared<ShaderProgram>();
+    shaderProgram->Build(vertexShader, fragmentShader, geometryShader);
+
     ShaderUniformCollection::NameSet filteredUniforms;
     filteredUniforms.insert("WorldMatrix");
     filteredUniforms.insert("ViewProjMatrix");
-    filteredUniforms.insert("AmbientColor");
-    filteredUniforms.insert("LightColor");
 
-    // Create reference material
     std::shared_ptr<Material> material = std::make_shared<Material>(shaderProgram, filteredUniforms);
-    material->SetUniformValue("Color", glm::vec4(1.0f));
-    material->SetUniformValue("AmbientReflection", 1.0f);
-    material->SetUniformValue("DiffuseReflection", 1.0f);
-    material->SetUniformValue("SpecularReflection", 1.0f);
-    material->SetUniformValue("SpecularExponent", 100.0f);
-
     // Setup function
     ShaderProgram::Location worldMatrixLocation = shaderProgram->GetUniformLocation("WorldMatrix");
     ShaderProgram::Location viewProjMatrixLocation = shaderProgram->GetUniformLocation("ViewProjMatrix");
-    ShaderProgram::Location ambientColorLocation = shaderProgram->GetUniformLocation("AmbientColor");
-    ShaderProgram::Location lightColorLocation = shaderProgram->GetUniformLocation("LightColor");
-    ShaderProgram::Location lightPositionLocation = shaderProgram->GetUniformLocation("LightPosition");
-    ShaderProgram::Location cameraPositionLocation = shaderProgram->GetUniformLocation("CameraPosition");
     material->SetShaderSetupFunction([=](ShaderProgram& shaderProgram)
-        {
-            shaderProgram.SetUniform(worldMatrixLocation, glm::scale(glm::vec3(0.1f)));
-            shaderProgram.SetUniform(viewProjMatrixLocation, m_camera.GetViewProjectionMatrix());
-
-            // Set camera and light uniforms
-            shaderProgram.SetUniform(ambientColorLocation, m_ambientColor);
-            shaderProgram.SetUniform(lightColorLocation, m_lightColor * m_lightIntensity);
-            shaderProgram.SetUniform(lightPositionLocation, m_lightPosition);
-            shaderProgram.SetUniform(cameraPositionLocation, m_cameraPosition);
-        });
-
-    // Configure loader
-    ModelLoader loader(material);
-    loader.SetCreateMaterials(true);
-    loader.SetMaterialAttribute(VertexAttribute::Semantic::Position, "VertexPosition");
-    loader.SetMaterialAttribute(VertexAttribute::Semantic::Normal, "VertexNormal");
-    loader.SetMaterialAttribute(VertexAttribute::Semantic::TexCoord0, "VertexTexCoord");
-
-    // Load and set textures
-    Texture2DLoader textureLoader(TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
-    textureLoader.SetFlipVertical(true);
+                                     {
+                                         shaderProgram.SetUniform(worldMatrixLocation, glm::scale(glm::vec3(0.1f)));
+                                         shaderProgram.SetUniform(viewProjMatrixLocation, glm::mat4(1));
+                                     });
 }
 
 void ViewerApplication::InitializeCamera()
@@ -210,3 +207,4 @@ void ViewerApplication::UpdateCamera()
    // Update view matrix
    m_camera.SetViewMatrix(m_cameraPosition, m_cameraPosition + viewForward);
 }
+

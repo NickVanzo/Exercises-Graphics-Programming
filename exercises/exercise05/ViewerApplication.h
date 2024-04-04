@@ -5,8 +5,15 @@
 #include <ituGL/camera/Camera.h>
 #include <ituGL/geometry/Model.h>
 #include <ituGL/utils/DearImGui.h>
+#include <ituGl/geometry/VertexBufferObject.h>
+#include <ituGl/geometry/VertexArrayObject.h>
+#include "Vector3.h"
 
 class Texture2DObject;
+
+struct Vertex {
+    Vector3 position;
+};
 
 class ViewerApplication : public Application
 {
@@ -20,13 +27,19 @@ protected:
     void Cleanup() override;
 
 private:
-    void InitializeModel();
     void InitializeCamera();
     void InitializeLights();
+    void InitializeShaders();
 
     void UpdateCamera();
-
     void RenderGUI();
+
+    /**
+     * Use this function to setup VBO and VAO with vertex data
+     * @return
+     */
+    void GenerateVertexData();
+
 
 private:
     // Helper object for debug GUI
@@ -54,4 +67,7 @@ private:
 
     // Specular exponent debug
     float m_specularExponentGrass;
+
+    VertexBufferObject m_vbo;
+    VertexArrayObject m_vao;
 };
