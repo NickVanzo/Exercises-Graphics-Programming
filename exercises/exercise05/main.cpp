@@ -1,7 +1,7 @@
-#include "ViewerApplication.h"
+#include "MinecraftApplication.h"
 
 int main()
 {
-    ViewerApplication viewerApplication;
+    MinecraftApplication viewerApplication;
     return viewerApplication.Run();
 }

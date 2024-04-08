@@ -90,7 +90,7 @@ ITU Graphics Programming
 <p><ol>
 	<li>Add the diffuse reflection constant, K<sub>d</sub>, to the shader; as a uniform of type float, "DiffuseReflection", as we did for the ambient. Initialize it in the reference material with a value of 1 as well.</li>
 	<li>Add a new uniform color, of type vec3, to the shader, with the name of "LightColor". Again, this should not be a property of the material, so we will add it to the <i>filtered uniforms</i> set.</li>
-	<li>In the ViewerApplication class, add a member variable for the light color. Because tuning the light intensity just with the color can be difficult, add another float member variable for the light intensity. You can initialize both as 1.</li>
+	<li>In the MinecraftApplication class, add a member variable for the light color. Because tuning the light intensity just with the color can be difficult, add another float member variable for the light intensity. You can initialize both as 1.</li>
 	<li>Set the light color uniform directly in the shader setup function, next to the AmbientColor. The value of the light color uniform is the product of the light color and light intensity member variables.</li>
 	<li>Back to the fragment shader, add a new function <i>GetDiffuseReflection()</i> that returns a vec3. Implement the diffuse reflection formula, except the last term (the dot product).</li>
 	<li>As you would expect, you should ADD the result of <i>GetDiffuseReflection()</i> to <i>GetAmbientReflection()</i> inside <i>GetBlinnPhongReflection()</i>.</li>
