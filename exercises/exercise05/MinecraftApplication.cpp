@@ -52,18 +52,14 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     struct Vertex
     {
         Vertex() = default;
-        Vertex(const glm::vec3& position, const glm::vec3& normal, const glm::vec2 texCoord)
-                : position(position), normal(normal), texCoord(texCoord) {}
+        Vertex(const glm::vec3& position)
+                : position(position) {}
         glm::vec3 position;
-        glm::vec3 normal;
-        glm::vec2 texCoord;
     };
 
     // Define the vertex format (should match the vertex structure)
     VertexFormat vertexFormat;
     vertexFormat.AddVertexAttribute<float>(3);
-    vertexFormat.AddVertexAttribute<float>(3);
-    vertexFormat.AddVertexAttribute<float>(2);
 
     // List of vertices (VBO)
     std::vector<Vertex> vertices;
@@ -85,14 +81,16 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
         {
             // Vertex data for this vertex only
             glm::vec3 position(i * scale.x, 0.0f, j * scale.y);
-            glm::vec3 normal(0.0f, 1.0f, 0.0f);
-            glm::vec2 texCoord(i, j);
-            vertices.emplace_back(position, normal, texCoord);
+            vertices.emplace_back(position);
         }
     }
 
-    mesh.AddSubmesh<Vertex, unsigned int, VertexFormat::LayoutIterator>(Drawcall::Primitive::Points, vertices, indices,
-                                                                        vertexFormat.LayoutBegin(static_cast<int>(vertices.size()), true /* interleaved */), vertexFormat.LayoutEnd());
+    mesh.AddSubmesh<Vertex, VertexFormat::LayoutIterator>(
+            Drawcall::Primitive::Points,
+            vertices,
+            vertexFormat.LayoutBegin(static_cast<int>(vertices.size()), false),
+            vertexFormat.LayoutEnd()
+            );
 }
 
 void MinecraftApplication::DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix)
@@ -145,19 +143,7 @@ void MinecraftApplication::InitializeMaterials() {
     std::shared_ptr<ShaderProgram> terrainShaderProgram = std::make_shared<ShaderProgram>();
     terrainShaderProgram->Build(vertexShader, fragmentShader, geometryShader);
 
-    ShaderUniformCollection::NameSet filteredUniforms;
-    filteredUniforms.insert("WorldMatrix");
-    filteredUniforms.insert("ViewProjMatrix");
-
-    m_grassMaterial = std::make_shared<Material>(terrainShaderProgram, filteredUniforms);
-    // Setup function
-    ShaderProgram::Location worldMatrixLocation = terrainShaderProgram->GetUniformLocation("WorldMatrix");
-    ShaderProgram::Location viewProjMatrixLocation = terrainShaderProgram->GetUniformLocation("ViewProjMatrix");
-    m_grassMaterial->SetShaderSetupFunction([=](ShaderProgram& shaderProgram)
-                                     {
-                                         shaderProgram.SetUniform(worldMatrixLocation, glm::scale(glm::vec3(0.1f)));
-                                         shaderProgram.SetUniform(viewProjMatrixLocation, glm::mat4(1));
-                                     });
+    m_grassMaterial = std::make_shared<Material>(terrainShaderProgram);
 }
 
 void MinecraftApplication::InitializeCamera()
