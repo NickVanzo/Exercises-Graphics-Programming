@@ -1,8 +1,9 @@
 #version 330 core
 
 out vec4 FragColor;
+uniform sampler2D GrassTexture;
 
 void main()
 {
-    FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    FragColor = texture(GrassTexture, vec2(1,0));
 }

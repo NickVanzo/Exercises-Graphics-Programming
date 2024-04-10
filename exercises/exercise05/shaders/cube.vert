@@ -7,6 +7,7 @@ out vec3 WorldPosition;
 uniform mat4 WorldMatrix;
 uniform mat4 ViewProjMatrix;
 
+
 void main()
 {
     WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;

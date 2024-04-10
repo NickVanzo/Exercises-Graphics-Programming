@@ -4,10 +4,12 @@
 #include <ituGL/asset/ModelLoader.h>
 #include <ituGL/shader/Material.h>
 #include <glm/gtx/euler_angles.hpp>
+#include <ituGL/texture/Texture2DObject.h>
 #include <glm/gtx/transform.hpp>
 #include <ituGL/geometry/VertexFormat.h>
 #include <glm/gtx/transform.hpp>  // for matrix transformations
-
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
@@ -90,7 +92,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     }
 
     mesh.AddSubmesh<Vertex, VertexFormat::LayoutIterator>(
-                Drawcall::Primitive::Points,
+            Drawcall::Primitive::Points,
             vertices,
             vertexFormat.LayoutBegin(static_cast<int>(vertices.size()), false),
             vertexFormat.LayoutEnd()
@@ -147,7 +149,26 @@ void MinecraftApplication::InitializeMaterials() {
     std::shared_ptr<ShaderProgram> terrainShaderProgram = std::make_shared<ShaderProgram>();
     terrainShaderProgram->Build(vertexShader, fragmentShader, geometryShader);
 
+    m_grassTexture = LoadTexture("textures/grass.png");
+
     m_grassMaterial = std::make_shared<Material>(terrainShaderProgram);
+    m_grassMaterial->SetUniformValue("GrassTexture", m_grassTexture);
+}
+
+std::shared_ptr<Texture2DObject> MinecraftApplication::LoadTexture(const char *path) {
+    std::shared_ptr<Texture2DObject> texture = std::make_shared<Texture2DObject>();
+    int width = 0;
+    int height = 0;
+    int components = 0;
+
+    unsigned char* data = stbi_load(path, &width, &height, &components, 4);
+
+    texture->Bind();
+    texture->SetImage(0, width, height, TextureObject::FormatRGBA, Texture2DObject::InternalFormatRGBA, std::span<const unsigned char>(data, width * height * 4));
+
+    texture->GenerateMipmap();
+
+    return texture;
 }
 
 void MinecraftApplication::InitializeCamera()

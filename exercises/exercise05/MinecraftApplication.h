@@ -32,6 +32,7 @@ private:
     void InitializeLights();
     void InitializeMaterials();
     void InitializeMeshes();
+    std::shared_ptr<Texture2DObject> LoadTexture(const char* path);
     void CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY, unsigned int gridZ);
     void DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix);
 
@@ -70,4 +71,5 @@ private:
     VertexArrayObject m_vao;
 
     std::shared_ptr<Material> m_grassMaterial;
+    std::shared_ptr<Texture2DObject> m_grassTexture;
 };
