@@ -32,7 +32,7 @@ private:
     void InitializeLights();
     void InitializeMaterials();
     void InitializeMeshes();
-    void CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY);
+    void CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY, unsigned int gridZ);
     void DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix);
 
     void UpdateCamera();
@@ -64,7 +64,7 @@ private:
 
     // Specular exponent debug
     float m_specularExponentGrass;
-    unsigned int m_gridX, m_gridY;
+    unsigned int m_gridX, m_gridY, m_gridZ;
 
     VertexBufferObject m_vbo;
     VertexArrayObject m_vao;

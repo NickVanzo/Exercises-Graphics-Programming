@@ -10,5 +10,5 @@ uniform mat4 ViewProjMatrix;
 void main()
 {
     WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
-    gl_Position = ViewProjMatrix * vec4(WorldPosition, 1.0);
+    gl_Position = vec4(WorldPosition, 1.0);
 }

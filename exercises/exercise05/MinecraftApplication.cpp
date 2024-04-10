@@ -6,17 +6,19 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
 #include <ituGL/geometry/VertexFormat.h>
+#include <glm/gtx/transform.hpp>  // for matrix transformations
 
 
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
-    , m_cameraPosition(0, 30, 30)
-    , m_gridY(16)
-    , m_gridX(16)
+    , m_cameraPosition(50, 30, 30)
+    , m_gridY(1)
+    , m_gridX(1)
+    , m_gridZ(1)
     , m_cameraTranslationSpeed(20.0f)
     , m_cameraRotationSpeed(0.5f)
-    , m_cameraEnabled(false)
-    , m_cameraEnablePressed(false)
+    , m_cameraEnabled(true)
+    , m_cameraEnablePressed(true)
     , m_mousePosition(GetMainWindow().GetMousePosition(true))
     , m_ambientColor(0.0f)
     , m_lightColor(0.0f)
@@ -43,10 +45,10 @@ void MinecraftApplication::Initialize()
 }
 
 void MinecraftApplication::InitializeMeshes() {
-    CreateTerrainMesh(m_terrainPatch, m_gridX, m_gridY);
+    CreateTerrainMesh(m_terrainPatch, m_gridX, m_gridY, m_gridZ);
 }
 
-void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY)
+void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY, unsigned int gridZ)
 {
     // Define the vertex structure
     struct Vertex
@@ -64,29 +66,31 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     // List of vertices (VBO)
     std::vector<Vertex> vertices;
 
-    // List of indices (EBO)
-    std::vector<unsigned int> indices;
-
     // Grid scale to convert the entire grid to size 1x1
-    glm::vec2 scale(1.0f / (gridX - 1), 1.0f / (gridY - 1));
+    glm::vec3 scale(1.0f, 1.0f, 1.0f);
+
+    if(gridX > 1 && gridY > 1 && gridZ > 1)
+        scale = glm::vec3(1.0f / (gridX - 1), 1.0f / (gridY - 1), 1.0f / (gridZ - 1));
 
     // Number of columns and rows
     unsigned int columnCount = gridX;
     unsigned int rowCount = gridY;
+    unsigned int depthCount = gridZ;
 
-    // Iterate over each VERTEX
     for (unsigned int j = 0; j < rowCount; ++j)
     {
         for (unsigned int i = 0; i < columnCount; ++i)
         {
-            // Vertex data for this vertex only
-            glm::vec3 position(i * scale.x, 0.0f, j * scale.y);
-            vertices.emplace_back(position);
+            for(unsigned int z = 0; z < depthCount; ++z) {
+                // Vertex data for this vertex only
+                glm::vec3 position(i * scale.x, j * scale.y, z * scale.z);
+                vertices.emplace_back(position);
+            }
         }
     }
 
     mesh.AddSubmesh<Vertex, VertexFormat::LayoutIterator>(
-            Drawcall::Primitive::Points,
+                Drawcall::Primitive::Points,
             vertices,
             vertexFormat.LayoutBegin(static_cast<int>(vertices.size()), false),
             vertexFormat.LayoutEnd()
