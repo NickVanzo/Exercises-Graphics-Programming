@@ -14,9 +14,9 @@
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
     , m_cameraPosition(50, 30, 30)
-    , m_gridY(1)
-    , m_gridX(1)
-    , m_gridZ(1)
+    , m_gridY(20)
+    , m_gridX(20)
+    , m_gridZ(20)
     , m_cameraTranslationSpeed(20.0f)
     , m_cameraRotationSpeed(0.5f)
     , m_cameraEnabled(true)
@@ -68,12 +68,6 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     // List of vertices (VBO)
     std::vector<Vertex> vertices;
 
-    // Grid scale to convert the entire grid to size 1x1
-    glm::vec3 scale(1.0f, 1.0f, 1.0f);
-
-    if(gridX > 1 && gridY > 1 && gridZ > 1)
-        scale = glm::vec3(1.0f / (gridX - 1), 1.0f / (gridY - 1), 1.0f / (gridZ - 1));
-
     // Number of columns and rows
     unsigned int columnCount = gridX;
     unsigned int rowCount = gridY;
@@ -85,7 +79,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
         {
             for(unsigned int z = 0; z < depthCount; ++z) {
                 // Vertex data for this vertex only
-                glm::vec3 position(i * scale.x, j * scale.y, z * scale.z);
+                glm::vec3 position(i, j, z);
                 vertices.emplace_back(position);
             }
         }

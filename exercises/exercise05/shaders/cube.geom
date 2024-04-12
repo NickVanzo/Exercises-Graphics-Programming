@@ -20,45 +20,45 @@ void createVertex(vec3 offset, vec2 texCoord){
 void build_cube()
 {
     // Front face
-    createVertex(vec3(-1.0,  1.0,  1.0), vec2(0.0, 1.0) );
-    createVertex(vec3(-1.0, -1.0,  1.0), vec2(0.0, 0.0) );
-    createVertex(vec3( 1.0,  1.0,  1.0), vec2(1.0, 1.0) );
-    createVertex(vec3( 1.0, -1.0,  1.0), vec2(1.0, 0.0) );
+    createVertex(vec3(-0.5,  0.5,  0.5), vec2(0.0, 1.0) );
+    createVertex(vec3(-0.5, -0.5,  0.5), vec2(0.0, 0.0) );
+    createVertex(vec3( 0.5,  0.5,  0.5), vec2(1.0, 1.0) );
+    createVertex(vec3( 0.5, -0.5,  0.5), vec2(1.0, 0.0) );
     EndPrimitive();
 
     // Right face
-    createVertex(vec3( 1.0,  1.0,  1.0), vec2(0.0, 1.0));
-    createVertex(vec3( 1.0, -1.0,  1.0), vec2(0.0, 0.0));
-    createVertex(vec3( 1.0,  1.0, -1.0), vec2(1.0, 1.0));
-    createVertex(vec3( 1.0, -1.0, -1.0), vec2(1.0, 0.0));
+    createVertex(vec3( 0.5, 0.5, 0.5), vec2(0.0, 1.0));
+    createVertex(vec3( 0.5, -0.5,  0.5), vec2(0.0, 0.0));
+    createVertex(vec3( 0.5,  0.5, -0.5), vec2(1.0, 1.0));
+    createVertex(vec3( 0.5, -0.5, -0.5), vec2(1.0, 0.0));
     EndPrimitive();
 
     // Back face
-    createVertex(vec3( 1.0,  1.0, -1.0), vec2(0.0, 1.0));
-    createVertex(vec3( 1.0, -1.0, -1.0), vec2(0.0, 0.0));
-    createVertex(vec3(-1.0,  1.0, -1.0), vec2(1.0, 1.0));
-    createVertex(vec3(-1.0, -1.0, -1.0), vec2(1.0, 0.0));
+    createVertex(vec3( 0.5,  0.5, -0.5), vec2(0.0, 1.0));
+    createVertex(vec3( 0.5, -0.5, -0.5), vec2(0.0, 0.0));
+    createVertex(vec3(-0.5,  0.5, -0.5), vec2(1.0, 1.0));
+    createVertex(vec3(-0.5, -0.5, -0.5), vec2(1.0, 0.0));
     EndPrimitive();
 
     // Left face
-    createVertex(vec3(-1.0,  1.0, -1.0), vec2(0.0, 1.0));
-    createVertex(vec3(-1.0, -1.0, -1.0), vec2(0.0, 0.0));
-    createVertex(vec3(-1.0,  1.0,  1.0), vec2(1.0, 1.0));
-    createVertex(vec3(-1.0, -1.0,  1.0), vec2(1.0, 0.0));
+    createVertex(vec3(-0.5,  0.5, -0.5), vec2(0.0, 1.0));
+    createVertex(vec3(-0.5, -0.5, -0.5), vec2(0.0, 0.0));
+    createVertex(vec3(-0.5,  0.5,  0.5), vec2(1.0, 1.0));
+    createVertex(vec3(-0.5, -0.5,  0.5), vec2(1.0, 0.0));
     EndPrimitive();
 
     // Top face
-    createVertex(vec3( 1.0,  1.0,  1.0), vec2(0.0, 1.0));
-    createVertex(vec3( 1.0,  1.0, -1.0), vec2(0.0, 0.0));
-    createVertex(vec3(-1.0,  1.0,  1.0), vec2(1.0, 1.0));
-    createVertex(vec3(-1.0,  1.0, -1.0), vec2(1.0, 0.0));
+    createVertex(vec3( 0.5,  0.5,  0.5), vec2(0.0, 1.0));
+    createVertex(vec3( 0.5,  0.5, -0.5), vec2(0.0, 0.0));
+    createVertex(vec3(-0.5,  0.5,  0.5), vec2(1.0, 1.0));
+    createVertex(vec3(-0.5,  0.5, -0.5), vec2(1.0, 0.0));
     EndPrimitive();
 
     // Bottom face
-    createVertex(vec3(-1.0, -1.0,  1.0), vec2(0.0, 1.0));
-    createVertex(vec3(-1.0, -1.0, -1.0), vec2(0.0, 0.0));
-    createVertex(vec3( 1.0, -1.0,  1.0), vec2(1.0, 1.0));
-    createVertex(vec3( 1.0, -1.0, -1.0), vec2(1.0, 0.0));
+    createVertex(vec3(-0.5, -0.5,  0.5), vec2(0.0, 1.0));
+    createVertex(vec3(-0.5, -0.5, -0.5), vec2(0.0, 0.0));
+    createVertex(vec3( 0.5, -0.5,  0.5), vec2(1.0, 1.0));
+    createVertex(vec3( 0.5, -0.5, -0.5), vec2(1.0, 0.0));
     EndPrimitive();
 }
 
