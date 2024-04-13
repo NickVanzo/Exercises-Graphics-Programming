@@ -7,16 +7,19 @@
 #include <ituGL/texture/Texture2DObject.h>
 #include <glm/gtx/transform.hpp>
 #include <ituGL/geometry/VertexFormat.h>
-#include <glm/gtx/transform.hpp>  // for matrix transformations
+#include "iostream"
+#define STB_PERLIN_IMPLEMENTATION
+#include "stb_perlin.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <algorithm>
 
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
     , m_cameraPosition(50, 30, 30)
-    , m_gridY(20)
-    , m_gridX(20)
-    , m_gridZ(20)
+    , m_gridY(50)
+    , m_gridX(120)
+    , m_gridZ(120)
     , m_cameraTranslationSpeed(20.0f)
     , m_cameraRotationSpeed(0.5f)
     , m_cameraEnabled(true)
@@ -72,15 +75,24 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     unsigned int columnCount = gridX;
     unsigned int rowCount = gridY;
     unsigned int depthCount = gridZ;
+    float noiseThreshold = 0.08;
 
     for (unsigned int j = 0; j < rowCount; ++j)
     {
         for (unsigned int i = 0; i < columnCount; ++i)
         {
             for(unsigned int z = 0; z < depthCount; ++z) {
-                // Vertex data for this vertex only
-                glm::vec3 position(i, j, z);
-                vertices.emplace_back(position);
+                float normalizedX = (float) i / (float) rowCount - 1;
+                float normalizedY = (float) j / (float) columnCount - 1;
+                float normalizedZ = (float) z / (float) depthCount - 1;
+
+                float noise = stb_perlin_fbm_noise3(normalizedX * 2, normalizedY * 2, normalizedZ * 2, 1.9f, 0.5f, 8) * 0.5f;
+
+                if(noise > noiseThreshold) {
+                    // Vertex data for this vertex only
+                    glm::vec3 position(i, j, z);
+                    vertices.emplace_back(position);
+                }
             }
         }
     }
