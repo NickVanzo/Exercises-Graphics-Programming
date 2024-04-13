@@ -17,9 +17,9 @@
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
     , m_cameraPosition(50, 30, 30)
-    , m_gridY(50)
-    , m_gridX(120)
-    , m_gridZ(120)
+    , m_gridY(100)
+    , m_gridX(100)
+    , m_gridZ(100)
     , m_cameraTranslationSpeed(20.0f)
     , m_cameraRotationSpeed(0.5f)
     , m_cameraEnabled(true)
@@ -75,6 +75,8 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     unsigned int columnCount = gridX;
     unsigned int rowCount = gridY;
     unsigned int depthCount = gridZ;
+    //The height from which we'll start to apply the noise
+    int heightThresholdNoise = 5;
     float noiseThreshold = 0.08;
 
     for (unsigned int j = 0; j < rowCount; ++j)
@@ -88,7 +90,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
 
                 float noise = stb_perlin_fbm_noise3(normalizedX * 2, normalizedY * 2, normalizedZ * 2, 1.9f, 0.5f, 8) * 0.5f;
 
-                if(noise > noiseThreshold) {
+                if(noise > noiseThreshold || j > rowCount - heightThresholdNoise) {
                     // Vertex data for this vertex only
                     glm::vec3 position(i, j, z);
                     vertices.emplace_back(position);
