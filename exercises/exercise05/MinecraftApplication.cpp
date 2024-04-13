@@ -14,10 +14,12 @@
 #include <stb_image.h>
 #include <algorithm>
 
+
+
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
     , m_cameraPosition(50, 30, 30)
-    , m_gridY(100)
+    , m_gridY(50)
     , m_gridX(100)
     , m_gridZ(100)
     , m_cameraTranslationSpeed(20.0f)
@@ -99,6 +101,20 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
         }
     }
 
+    //generate mountain vertex info
+    for(int j = 0; j < gridX; ++j) {
+        for(int i = 0; i < gridZ; ++i) {
+            float normalizedX = (float) j / (float) gridX - 1;
+            float normalizedZ = (float) i / (float) gridZ - 1;
+            float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 50.0f;
+            float height =  noise + rowCount;
+            for(int h = 0; h < height; ++h) {
+                if(h > rowCount - heightThresholdNoise)
+                    vertices.emplace_back(glm::vec3(j, h, i));
+            }
+        }
+    }
+
     mesh.AddSubmesh<Vertex, VertexFormat::LayoutIterator>(
             Drawcall::Primitive::Points,
             vertices,
@@ -106,6 +122,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
             vertexFormat.LayoutEnd()
             );
 }
+
 
 void MinecraftApplication::DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix)
 {
