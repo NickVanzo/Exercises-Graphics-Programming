@@ -15,8 +15,7 @@ public:
     Texture2DArrayObject Load(const char* path) override;
     Texture2DArrayObject Load(std::span<const char*> paths);
 
-    static std::shared_ptr<Texture2DArrayObject> LoadTextureShared(std::span<const char*> paths,
-                                                                   TextureObject::Format format, TextureObject::InternalFormat internalFormat, bool generateMipmap = true);
+    static std::shared_ptr<Texture2DArrayObject> LoadTextureShared(std::span<const char*> paths, TextureObject::Format format, TextureObject::InternalFormat internalFormat, bool generateMipmap = true);
 
     inline bool GetFlipVertical() const { return m_flipVertical; }
     inline void SetFlipVertical(bool flipVertical) { m_flipVertical = flipVertical; }

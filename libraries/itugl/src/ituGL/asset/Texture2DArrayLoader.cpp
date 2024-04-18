@@ -1,5 +1,4 @@
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <ituGL/asset/Texture2DArrayLoader.h>
 
@@ -16,9 +15,10 @@ Texture2DArrayObject Texture2DArrayLoader::Load(const char *path) {
 }
 
 Texture2DArrayObject Texture2DArrayLoader::Load(std::span<const char*> paths) {
+
     Texture2DArrayObject textureArray;
     unsigned char* totalData = nullptr;
-    stbi_set_flip_vertically_on_load(m_flipVertical ? 1 : 0);
+    stbi_set_flip_vertically_on_load(m_flipVertical ? 1 : 0); // <---- this line crashes
     int componentCount = TextureObject::GetComponentCount(m_format);
     int totalDataSize = 0;
     int currentOffset = 0;
@@ -29,7 +29,6 @@ Texture2DArrayObject Texture2DArrayLoader::Load(std::span<const char*> paths) {
 
     for(const char* path : paths) {
         unsigned char* data = stbi_load(path, &width, &height, &originalComponentCount, componentCount);
-        assert(data);
         if(data) {
             int dataSize = width * height * componentCount;
             totalData = static_cast<unsigned char*>(std::realloc(totalData, totalDataSize + dataSize));
@@ -53,4 +52,5 @@ Texture2DArrayObject Texture2DArrayLoader::Load(std::span<const char*> paths) {
 
     return textureArray;
 }
+
 

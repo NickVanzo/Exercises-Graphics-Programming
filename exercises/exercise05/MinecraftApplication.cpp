@@ -4,7 +4,7 @@
 #include <ituGL/asset/ModelLoader.h>
 #include <ituGL/shader/Material.h>
 #include <glm/gtx/euler_angles.hpp>
-#include <ituGL/texture/Texture2DObject.h>
+#include <ituGL/asset/Texture2DArrayLoader.h>
 #include <glm/gtx/transform.hpp>
 #include <ituGL/geometry/VertexFormat.h>
 #include "iostream"
@@ -13,8 +13,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <algorithm>
-
-
 
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
@@ -41,10 +39,12 @@ void MinecraftApplication::Initialize()
     // Initialize DearImGUI
     m_imGui.Initialize(GetMainWindow());
 
+    InitializeTextures();
     InitializeCamera();
     InitializeLights();
     InitializeMaterials();
     InitializeMeshes();
+
 
     DeviceGL& device = GetDevice();
     device.EnableFeature(GL_DEPTH_TEST);
@@ -90,7 +90,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
                 float normalizedY = (float) j / (float) columnCount - 1;
                 float normalizedZ = (float) z / (float) depthCount - 1;
 
-                float noise = stb_perlin_fbm_noise3(normalizedX * 2, normalizedY * 2, normalizedZ * 2, 1.9f, 0.5f, 8) * 0.5f;
+                float noise = stb_perlin_fbm_noise3(normalizedX * 2, normalizedY * 2, normalizedZ * 2, 1.9f, 0.5f, 8) * 50.0f;
 
                 if(noise > noiseThreshold || j > rowCount - heightThresholdNoise) {
                     // Vertex data for this vertex only
@@ -106,7 +106,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
         for(int i = 0; i < gridZ; ++i) {
             float normalizedX = (float) j / (float) gridX - 1;
             float normalizedZ = (float) i / (float) gridZ - 1;
-            float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 100.0f;
+            float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 75.0f;
             float height =  noise + rowCount;
             for(int h = 0; h < height; ++h) {
                 if(h > rowCount - heightThresholdNoise)
@@ -166,6 +166,12 @@ void MinecraftApplication::Cleanup()
     Application::Cleanup();
 }
 
+void MinecraftApplication::InitializeTextures() {
+    Texture2DArrayLoader loader(TextureObject::FormatRGB, TextureObject::InternalFormatRGB8);
+    std::vector<const char*> paths = { "textures/grass.png" };
+    m_textures = std::make_shared<Texture2DArrayObject>(loader.Load(paths));
+}
+
 void MinecraftApplication::InitializeMaterials() {
     Shader vertexShader = ShaderLoader::Load(Shader::VertexShader, "shaders/cube.vert");
     Shader fragmentShader = ShaderLoader::Load(Shader::FragmentShader, "shaders/cube.frag");
@@ -174,26 +180,8 @@ void MinecraftApplication::InitializeMaterials() {
     std::shared_ptr<ShaderProgram> terrainShaderProgram = std::make_shared<ShaderProgram>();
     terrainShaderProgram->Build(vertexShader, fragmentShader, geometryShader);
 
-    m_grassTexture = LoadTexture("textures/grass.png");
-
     m_grassMaterial = std::make_shared<Material>(terrainShaderProgram);
-    m_grassMaterial->SetUniformValue("GrassTexture", m_grassTexture);
-}
-
-std::shared_ptr<Texture2DObject> MinecraftApplication::LoadTexture(const char *path) {
-    std::shared_ptr<Texture2DObject> texture = std::make_shared<Texture2DObject>();
-    int width = 0;
-    int height = 0;
-    int components = 0;
-
-    unsigned char* data = stbi_load(path, &width, &height, &components, 4);
-
-    texture->Bind();
-    texture->SetImage(0, width, height, TextureObject::FormatRGBA, Texture2DObject::InternalFormatRGBA, std::span<const unsigned char>(data, width * height * 4));
-
-    texture->GenerateMipmap();
-
-    return texture;
+    m_grassMaterial->SetUniformValue("TextureArray", m_textures);
 }
 
 void MinecraftApplication::InitializeCamera()

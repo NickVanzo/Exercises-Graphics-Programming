@@ -2,9 +2,9 @@
 
 in vec2 TexCoord;
 out vec4 FragColor;
-uniform sampler2D GrassTexture;
+uniform sampler2DArray TextureArray;
 
 void main()
 {
-    FragColor = texture(GrassTexture, TexCoord);
+    FragColor = texture(TextureArray, vec3(TexCoord, 0));
 }
