@@ -4,9 +4,12 @@ layout (triangle_strip, max_vertices = 24) out;
 
 uniform mat4 ViewProjMatrix;
 
-out vec3 WorldPosition;
-const float size = 1.0;
 out vec2 TexCoord;
+out vec3 WorldPosition;
+flat in uint VoxelGeom[];
+flat out uint VoxelType;
+
+const float size = 1.0;
 
 void createVertex(vec3 offset, vec2 texCoord){
     vec4 actualOffset = vec4(offset * size, 1.0);
@@ -63,5 +66,6 @@ void build_cube()
 }
 
 void main() {
+    VoxelType = VoxelGeom[0];
     build_cube();
 }

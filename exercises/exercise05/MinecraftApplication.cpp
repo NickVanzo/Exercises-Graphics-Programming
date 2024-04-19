@@ -14,6 +14,11 @@
 #include <stb_image.h>
 #include <algorithm>
 
+enum VoxelTypes {
+    GRASS = 0,
+    STONE = 1
+};
+
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
     , m_cameraPosition(100, 60, 60)
@@ -57,18 +62,19 @@ void MinecraftApplication::InitializeMeshes() {
 
 void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY, unsigned int gridZ)
 {
-    // Define the vertex structure
     struct Vertex
     {
         Vertex() = default;
-        Vertex(const glm::vec3& position)
-                : position(position) {}
+        Vertex(const glm::vec3& position, unsigned int voxelType)
+                : position(position), voxelType(voxelType) {}
         glm::vec3 position;
+        unsigned int voxelType;
     };
 
     // Define the vertex format (should match the vertex structure)
     VertexFormat vertexFormat;
     vertexFormat.AddVertexAttribute<float>(3);
+    vertexFormat.AddVertexAttribute<unsigned int>(1, false);
 
     // List of vertices (VBO)
     std::vector<Vertex> vertices;
@@ -89,13 +95,21 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
                 float normalizedX = (float) i / (float) rowCount - 1;
                 float normalizedY = (float) j / (float) columnCount - 1;
                 float normalizedZ = (float) z / (float) depthCount - 1;
+                unsigned int stone = 1;
+                unsigned int grass = 0;
 
                 float noise = stb_perlin_fbm_noise3(normalizedX * 2, normalizedY * 2, normalizedZ * 2, 1.9f, 0.5f, 8) * 50.0f;
 
                 if(noise > noiseThreshold || j > rowCount - heightThresholdNoise) {
                     // Vertex data for this vertex only
                     glm::vec3 position(i, j, z);
-                    vertices.emplace_back(position);
+                    if(j > m_gridY - 4) {
+                        vertices.emplace_back(position, grass);
+                    } else {
+
+                        vertices.emplace_back(position, stone);
+                    }
+                    GetVoxelType(j);
                 }
             }
         }
@@ -108,9 +122,10 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
             float normalizedZ = (float) i / (float) gridZ - 1;
             float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 75.0f;
             float height =  noise + rowCount;
+            unsigned int grass = 0;
             for(int h = 0; h < height; ++h) {
                 if(h > rowCount - heightThresholdNoise)
-                    vertices.emplace_back(glm::vec3(j, h, i));
+                    vertices.emplace_back(glm::vec3(j, h, i), grass);
             }
         }
     }
@@ -118,11 +133,15 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     mesh.AddSubmesh<Vertex, VertexFormat::LayoutIterator>(
             Drawcall::Primitive::Points,
             vertices,
-            vertexFormat.LayoutBegin(static_cast<int>(vertices.size()), false),
+            vertexFormat.LayoutBegin(static_cast<int>(vertices.size()), true),
             vertexFormat.LayoutEnd()
             );
 }
 
+int MinecraftApplication::GetVoxelType(float height) {
+    std::cout << "height " << height << std::endl;
+    return 0;
+}
 
 void MinecraftApplication::DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix)
 {
@@ -168,7 +187,7 @@ void MinecraftApplication::Cleanup()
 
 void MinecraftApplication::InitializeTextures() {
     Texture2DArrayLoader loader(TextureObject::FormatRGB, TextureObject::InternalFormatRGB8);
-    std::vector<const char*> paths = { "textures/grass.png" };
+    std::vector<const char*> paths = { "textures/grass.png", "textures/stone.png" };
     m_textures = std::make_shared<Texture2DArrayObject>(loader.Load(paths));
 }
 
