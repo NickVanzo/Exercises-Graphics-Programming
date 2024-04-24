@@ -12,6 +12,7 @@
 #include "stb_perlin.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <algorithm>
+#include <iostream>
 
 enum VoxelTypes {
     GRASS = 0,
@@ -113,12 +114,17 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
         for(int i = 0; i < gridZ; ++i) {
             float normalizedX = (float) j / (float) gridX - 1;
             float normalizedZ = (float) i / (float) gridZ - 1;
-            float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 75.0f;
+            float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 35.0f;
             float height = noise + rowCount;
 
             for(int h = 0; h < height; ++h) {
-                if(h > rowCount - heightThresholdNoise)
-                    vertices.emplace_back(glm::vec3(j, h, i), GetVoxelType(h, 1));
+                if(h > rowCount - heightThresholdNoise) {
+                    if(h > height - 3) {
+                        vertices.emplace_back(glm::vec3(j, h, i), 0);
+                    } else {
+                        vertices.emplace_back(glm::vec3(j, h, i), 1);
+                    }
+                }
             }
         }
     }
@@ -150,34 +156,35 @@ int MinecraftApplication::GetVoxelType(float height, float density) {
     int coal = 5;
     int gold = 6;
 
+    // Height thresholds for different layers
     float diamondHeight = m_gridY / 5;
+    float cloudHeight = m_cloudHeight;
 
-    if(height == 150) {
+    if (height == cloudHeight) {
         return cloud;
     }
 
-    if(height < m_gridY - 4) {
-        if(height < diamondHeight) {
-            if(density > 0.35) {
+    if(height == 0) return water;
+
+    if (height < m_gridY - 4) {
+        if (height < diamondHeight) {
+            if (density > 0.35) {
                 return diamond;
-            } else if(density > 0.34 && density < 0.35) {
+            } else if (density > 0.34 && density < 0.35) {
                 return gold;
             } else {
                 return stone;
             }
         } else {
-            if(density < -0.30) {
+            if (density < -0.30) {
                 return coal;
             } else {
                 return stone;
             }
-
         }
     } else {
-        return grass;
+        return stone;
     }
-
-    return 0;
 }
 
 float MinecraftApplication::GenerateVoxelDensity(glm::vec3 voxelPos) {
