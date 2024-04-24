@@ -7,11 +7,10 @@
 #include <ituGL/asset/Texture2DArrayLoader.h>
 #include <glm/gtx/transform.hpp>
 #include <ituGL/geometry/VertexFormat.h>
-#include "iostream"
+#include <time.h>
 #define STB_PERLIN_IMPLEMENTATION
 #include "stb_perlin.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 #include <algorithm>
 
 enum VoxelTypes {
@@ -23,7 +22,7 @@ MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
     , m_cameraPosition(100, 60, 60)
     , m_gridY(100)
-    , m_gridX(100)
+    , m_gridX(200)
     , m_gridZ(100)
     , m_cameraTranslationSpeed(20.0f)
     , m_cameraRotationSpeed(0.5f)
@@ -35,11 +34,13 @@ MinecraftApplication::MinecraftApplication()
     , m_lightIntensity(0.0f)
     , m_lightPosition(0.0f)
     , m_specularExponentGrass(100.0f)
+    , m_cloudHeight(150)
 {}
 
 void MinecraftApplication::Initialize()
 {
     Application::Initialize();
+    srand( (unsigned)time( NULL ) );
 
     // Initialize DearImGUI
     m_imGui.Initialize(GetMainWindow());
@@ -95,21 +96,13 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
                 float normalizedX = (float) i / (float) rowCount - 1;
                 float normalizedY = (float) j / (float) columnCount - 1;
                 float normalizedZ = (float) z / (float) depthCount - 1;
-                unsigned int stone = 1;
-                unsigned int grass = 0;
 
-                float noise = stb_perlin_fbm_noise3(normalizedX * 2, normalizedY * 2, normalizedZ * 2, 1.9f, 0.5f, 8) * 50.0f;
+                float noise = stb_perlin_fbm_noise3(normalizedX * 3, normalizedY * 3, normalizedZ * 2, 1.9f, 0.5f, 8) * 25.0f;
 
                 if(noise > noiseThreshold || j > rowCount - heightThresholdNoise) {
                     // Vertex data for this vertex only
                     glm::vec3 position(i, j, z);
-                    if(j > m_gridY - 4) {
-                        vertices.emplace_back(position, grass);
-                    } else {
-
-                        vertices.emplace_back(position, stone);
-                    }
-                    GetVoxelType(j);
+                    vertices.emplace_back(position, GetVoxelType(j, GenerateVoxelDensity(glm::vec2(rand() % z,i))));
                 }
             }
         }
@@ -121,12 +114,22 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
             float normalizedX = (float) j / (float) gridX - 1;
             float normalizedZ = (float) i / (float) gridZ - 1;
             float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 75.0f;
-            float height =  noise + rowCount;
-            unsigned int grass = 0;
+            float height = noise + rowCount;
+
             for(int h = 0; h < height; ++h) {
                 if(h > rowCount - heightThresholdNoise)
-                    vertices.emplace_back(glm::vec3(j, h, i), grass);
+                    vertices.emplace_back(glm::vec3(j, h, i), GetVoxelType(h, GenerateVoxelDensity(glm::vec2(i,h))));
             }
+        }
+    }
+
+    for(int i = 0; i < gridX; i++) {
+        for(int j = 0; j < gridZ; ++j) {
+            float normalizedX = (float) i / (float) gridX - 1;
+            float normalizedZ = (float) j / (float) gridZ - 1;
+            float noise = stb_perlin_fbm_noise3(normalizedX * 1.5, 0.0f, normalizedZ * 1.5, 2.0f, 1.5f, 4);
+            if(noise > 0.35f)
+                vertices.emplace_back(glm::vec3(i, m_cloudHeight, j), GetVoxelType(m_cloudHeight, GenerateVoxelDensity(glm::vec2(i,m_cloudHeight))));
         }
     }
 
@@ -138,9 +141,47 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
             );
 }
 
-int MinecraftApplication::GetVoxelType(float height) {
-    std::cout << "height " << height << std::endl;
+int MinecraftApplication::GetVoxelType(float height, float density) {
+    int grass = 0;
+    int stone = 1;
+    int diamond = 2;
+    int cloud = 3;
+    int water = 4;
+    int coal = 5;
+    int gold = 6;
+
+    float diamondHeight = m_gridY / 5;
+
+    if(height == 150) {
+        return cloud;
+    }
+
+    if(height < m_gridY - 4) {
+        if(height < diamondHeight) {
+            if(density > 0.35) {
+                return diamond;
+            } else if(density > 0.34 && density < 0.35) {
+                return gold;
+            } else {
+                return stone;
+            }
+        } else {
+            if(density < -0.30) {
+                return coal;
+            } else {
+                return stone;
+            }
+
+        }
+    } else {
+        return grass;
+    }
+
     return 0;
+}
+
+float MinecraftApplication::GenerateVoxelDensity(glm::vec2 voxelPos) {
+    return stb_perlin_fbm_noise3(voxelPos.x * 2, 0.0f, voxelPos.y * 2, 1.9f, 0.5f, 16);
 }
 
 void MinecraftApplication::DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix)
@@ -187,7 +228,7 @@ void MinecraftApplication::Cleanup()
 
 void MinecraftApplication::InitializeTextures() {
     Texture2DArrayLoader loader(TextureObject::FormatRGB, TextureObject::InternalFormatRGB8);
-    std::vector<const char*> paths = { "textures/grass.png", "textures/stone.png" };
+    std::vector<const char*> paths = { "textures/grass.png", "textures/stone.png", "textures/diamond.png", "textures/cloud.png", "textures/water.jpeg", "textures/coal.png", "textures/gold.png" };
     m_textures = std::make_shared<Texture2DArrayObject>(loader.Load(paths));
 }
 

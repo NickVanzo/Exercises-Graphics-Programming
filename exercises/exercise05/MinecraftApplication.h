@@ -35,8 +35,9 @@ private:
     void InitializeMeshes();
     void CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY, unsigned int gridZ);
     std::vector<Vertex> GenerateMountains(Mesh& mesh, unsigned int gridX, unsigned int gridZ);
+    float GenerateVoxelDensity(glm::vec2 voxelPos);
     void DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix);
-    int GetVoxelType(float height);
+    int GetVoxelType(float height, float density);
 
     void UpdateCamera();
     void RenderGUI();
@@ -52,6 +53,7 @@ private:
     glm::vec3 m_cameraPosition;
     float m_cameraTranslationSpeed;
     float m_cameraRotationSpeed;
+    unsigned int m_cloudHeight;
     bool m_cameraEnabled;
     bool m_cameraEnablePressed;
 
