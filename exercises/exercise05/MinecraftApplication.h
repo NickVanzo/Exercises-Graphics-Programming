@@ -35,7 +35,7 @@ private:
     void InitializeMeshes();
     void CreateTerrainMesh(Mesh& mesh, unsigned int gridX, unsigned int gridY, unsigned int gridZ);
     std::vector<Vertex> GenerateMountains(Mesh& mesh, unsigned int gridX, unsigned int gridZ);
-    float GenerateVoxelDensity(glm::vec2 voxelPos);
+    float GenerateVoxelDensity(glm::vec3 voxelPos);
     void DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix);
     int GetVoxelType(float height, float density);
 

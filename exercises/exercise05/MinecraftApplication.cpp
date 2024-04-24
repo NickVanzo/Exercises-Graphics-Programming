@@ -102,7 +102,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
                 if(noise > noiseThreshold || j > rowCount - heightThresholdNoise) {
                     // Vertex data for this vertex only
                     glm::vec3 position(i, j, z);
-                    vertices.emplace_back(position, GetVoxelType(j, GenerateVoxelDensity(glm::vec2(rand() % z,i))));
+                    vertices.emplace_back(position, GetVoxelType(j, GenerateVoxelDensity(glm::vec3(j,i,z))));
                 }
             }
         }
@@ -118,7 +118,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
 
             for(int h = 0; h < height; ++h) {
                 if(h > rowCount - heightThresholdNoise)
-                    vertices.emplace_back(glm::vec3(j, h, i), GetVoxelType(h, GenerateVoxelDensity(glm::vec2(i,h))));
+                    vertices.emplace_back(glm::vec3(j, h, i), GetVoxelType(h, 1));
             }
         }
     }
@@ -129,7 +129,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
             float normalizedZ = (float) j / (float) gridZ - 1;
             float noise = stb_perlin_fbm_noise3(normalizedX * 1.5, 0.0f, normalizedZ * 1.5, 2.0f, 1.5f, 4);
             if(noise > 0.35f)
-                vertices.emplace_back(glm::vec3(i, m_cloudHeight, j), GetVoxelType(m_cloudHeight, GenerateVoxelDensity(glm::vec2(i,m_cloudHeight))));
+                vertices.emplace_back(glm::vec3(i, m_cloudHeight, j), GetVoxelType(m_cloudHeight, GenerateVoxelDensity(glm::vec3(i,m_cloudHeight,j))));
         }
     }
 
@@ -180,8 +180,8 @@ int MinecraftApplication::GetVoxelType(float height, float density) {
     return 0;
 }
 
-float MinecraftApplication::GenerateVoxelDensity(glm::vec2 voxelPos) {
-    return stb_perlin_fbm_noise3(voxelPos.x * 2, 0.0f, voxelPos.y * 2, 1.9f, 0.5f, 16);
+float MinecraftApplication::GenerateVoxelDensity(glm::vec3 voxelPos) {
+    return stb_perlin_fbm_noise3(voxelPos.x * 2, voxelPos.y * 2, voxelPos.z * 2, 1.9f, 0.5f, 16);
 }
 
 void MinecraftApplication::DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix)
