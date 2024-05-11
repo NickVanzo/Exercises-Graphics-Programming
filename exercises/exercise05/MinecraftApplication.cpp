@@ -12,6 +12,7 @@
 #include "stb_perlin.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <algorithm>
+#include <set>
 #include <iostream>
 
 enum VoxelTypes {
@@ -22,9 +23,9 @@ enum VoxelTypes {
 MinecraftApplication::MinecraftApplication()
     : Application(1024, 1024, "Viewer demo")
     , m_cameraPosition(100, 60, 60)
-    , m_gridY(100)
-    , m_gridX(200)
-    , m_gridZ(100)
+    , m_gridY(1)
+    , m_gridX(1)
+    , m_gridZ(3)
     , m_cameraTranslationSpeed(20.0f)
     , m_cameraRotationSpeed(0.5f)
     , m_cameraEnabled(true)
@@ -52,7 +53,6 @@ void MinecraftApplication::Initialize()
     InitializeMaterials();
     InitializeMeshes();
 
-
     DeviceGL& device = GetDevice();
     device.EnableFeature(GL_DEPTH_TEST);
     device.SetVSyncEnabled(true);
@@ -67,9 +67,10 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     struct Vertex
     {
         Vertex() = default;
-        Vertex(const glm::vec3& position, unsigned int voxelType)
-                : position(position), voxelType(voxelType) {}
+        Vertex(const glm::vec3& position, unsigned int voxelType, int mask = 0)
+                : position(position), voxelType(voxelType), mask(mask) {}
         glm::vec3 position;
+        int mask;
         unsigned int voxelType;
     };
 
@@ -77,6 +78,7 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     VertexFormat vertexFormat;
     vertexFormat.AddVertexAttribute<float>(3);
     vertexFormat.AddVertexAttribute<unsigned int>(1, false);
+    vertexFormat.AddVertexAttribute<int>(1, false);
 
     // List of vertices (VBO)
     std::vector<Vertex> vertices;
@@ -89,11 +91,14 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     int heightThresholdNoise = 5;
     float noiseThreshold = 0.08;
 
-    for (unsigned int j = 0; j < rowCount; ++j)
+    // all taken positions
+    std::unordered_set<Face, HashFunction> faces;
+
+    for (int j = 0; j < rowCount; ++j)
     {
-        for (unsigned int i = 0; i < columnCount; ++i)
+        for (int i = 0; i < columnCount; ++i)
         {
-            for(unsigned int z = 0; z < depthCount; ++z) {
+            for(int z = 0; z < depthCount; ++z) {
                 float normalizedX = (float) i / (float) rowCount - 1;
                 float normalizedY = (float) j / (float) columnCount - 1;
                 float normalizedZ = (float) z / (float) depthCount - 1;
@@ -103,6 +108,8 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
                 if(noise > noiseThreshold || j > rowCount - heightThresholdNoise) {
                     // Vertex data for this vertex only
                     glm::vec3 position(i, j, z);
+
+                    InsertFace(i, j, z, faces);
                     vertices.emplace_back(position, GetVoxelType(j, GenerateVoxelDensity(glm::vec3(j,i,z))));
                 }
             }
@@ -110,34 +117,82 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
     }
 
     //generate mountain vertex info
-    for(int j = 0; j < gridX; ++j) {
-        for(int i = 0; i < gridZ; ++i) {
-            float normalizedX = (float) j / (float) gridX - 1;
-            float normalizedZ = (float) i / (float) gridZ - 1;
-            float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 35.0f;
-            float height = noise + rowCount;
+//    for(int j = 0; j < gridX; ++j) {
+//        for(int i = 0; i < gridZ; ++i) {
+//            float normalizedX = (float) j / (float) gridX - 1;
+//            float normalizedZ = (float) i / (float) gridZ - 1;
+//            float noise = stb_perlin_fbm_noise3(normalizedX * 2, 0.0f, normalizedZ * 2, 1.9f, 0.5f, 8) * 35.0f;
+//            float height = noise + rowCount;
+//
+//            for(int h = 0; h < height; ++h) {
+//                if(h > rowCount - heightThresholdNoise) {
+//                    if(h > height - 3) {
+//                        vertices.emplace_back(glm::vec3(j, h, i), 0);
+//                    } else {
+//                        vertices.emplace_back(glm::vec3(j, h, i), 1);
+//                    }
+//                    InsertFace(j + 1, h, i , faces);
+//                    InsertFace(j - 1, h, i, faces);
+//                    InsertFace(j, h + 1, i, faces);
+//                    InsertFace(j, h - 1, i, faces);
+//                    InsertFace(j, h, i + 1, faces);
+//                    InsertFace(j, h, i - 1, faces);
+//                }
+//            }
+//        }
+//    }
+//
+//    for(int i = 0; i < gridX; i++) {
+//        for(int j = 0; j < gridZ; ++j) {
+//            float normalizedX = (float) i / (float) gridX - 1;
+//            float normalizedZ = (float) j / (float) gridZ - 1;
+//            float noise = stb_perlin_fbm_noise3(normalizedX * 1.5, 0.0f, normalizedZ * 1.5, 2.0f, 1.5f, 4);
+//            if(noise > 0.35f) {
+//                vertices.emplace_back(glm::vec3(i, m_cloudHeight, j), GetVoxelType(m_cloudHeight, GenerateVoxelDensity(glm::vec3(i,m_cloudHeight,j))));
+//
+//                InsertFace(i + 1, m_cloudHeight, j, faces);
+//                InsertFace(i - 1, m_cloudHeight, j, faces);
+//                InsertFace(i, m_cloudHeight, j, faces);
+//                InsertFace(i, m_cloudHeight, j, faces);
+//                InsertFace(i, m_cloudHeight, j + 1, faces);
+//                InsertFace(i, m_cloudHeight, j - 1, faces);
+//            }
+//
+//        }
+//    }
 
-            for(int h = 0; h < height; ++h) {
-                if(h > rowCount - heightThresholdNoise) {
-                    if(h > height - 3) {
-                        vertices.emplace_back(glm::vec3(j, h, i), 0);
-                    } else {
-                        vertices.emplace_back(glm::vec3(j, h, i), 1);
-                    }
-                }
+    if(!vertices.empty()) {
+        for(int i = 0; i < vertices.size(); ++i) {
+            auto v = vertices[i];
+
+            Face up = { int(v.position.x) , int(v.position.y + 1) , int(v.position.z) };
+            Face down = { int(v.position.x) , int(v.position.y - 1) , int(v.position.z) };
+            Face right = { int(v.position.x + 1) , int(v.position.y) , int(v.position.z) };
+            Face left = { int(v.position.x - 1) , int(v.position.y) , int(v.position.z) };
+            Face front = { int(v.position.x) , int(v.position.y) , int(v.position.z + 1) };
+            Face back = { int(v.position.x) , int(v.position.y) , int(v.position.z - 1) };
+
+            if(faces.find(left) != faces.end()) {
+                vertices[i].mask |= 0x01;
+            }
+            if(faces.find(right) != faces.end()) {
+                vertices[i].mask |= 0x02;
+            }
+            if(faces.find(up) != faces.end()) {
+                vertices[i].mask |= 0x04;
+            }
+            if(faces.find(down) != faces.end()) {
+                vertices[i].mask |= 0x08;
+            }
+            if(faces.find(front) != faces.end()) {
+                vertices[i].mask |= 0x16;
+            }
+            if(faces.find(back) != faces.end()) {
+                vertices[i].mask |= 0x32;
             }
         }
     }
 
-    for(int i = 0; i < gridX; i++) {
-        for(int j = 0; j < gridZ; ++j) {
-            float normalizedX = (float) i / (float) gridX - 1;
-            float normalizedZ = (float) j / (float) gridZ - 1;
-            float noise = stb_perlin_fbm_noise3(normalizedX * 1.5, 0.0f, normalizedZ * 1.5, 2.0f, 1.5f, 4);
-            if(noise > 0.35f)
-                vertices.emplace_back(glm::vec3(i, m_cloudHeight, j), GetVoxelType(m_cloudHeight, GenerateVoxelDensity(glm::vec3(i,m_cloudHeight,j))));
-        }
-    }
 
     mesh.AddSubmesh<Vertex, VertexFormat::LayoutIterator>(
             Drawcall::Primitive::Points,
@@ -145,6 +200,34 @@ void MinecraftApplication::CreateTerrainMesh(Mesh& mesh, unsigned int gridX, uns
             vertexFormat.LayoutBegin(static_cast<int>(vertices.size()), true),
             vertexFormat.LayoutEnd()
             );
+}
+
+void MinecraftApplication::InsertFace(int x, int y, int z, std::unordered_set<Face, HashFunction>& faces) {
+    Face up = {x, y + 1, z};
+    Face down = {x, y - 1, z};
+    Face left = {x - 1, y, z};
+    Face right = {x + 1, y, z};
+    Face front = {x, y, z + 1};
+    Face back = {x, y, z - 1};
+
+    if (faces.find(up) == faces.end()) {
+        faces.insert(up);
+    }
+    if (faces.find(down) == faces.end()) {
+        faces.insert(down);
+    }
+    if (faces.find(left) == faces.end()) {
+        faces.insert(left);
+    }
+    if (faces.find(right) == faces.end()) {
+        faces.insert(right);
+    }
+    if (faces.find(front) == faces.end()) {
+        faces.insert(front);
+    }
+    if (faces.find(back) == faces.end()) {
+        faces.insert(back);
+    }
 }
 
 int MinecraftApplication::GetVoxelType(float height, float density) {
@@ -163,8 +246,6 @@ int MinecraftApplication::GetVoxelType(float height, float density) {
     if (height == cloudHeight) {
         return cloud;
     }
-
-    if(height == 0) return water;
 
     if (height < m_gridY - 4) {
         if (height < diamondHeight) {

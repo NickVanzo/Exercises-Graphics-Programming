@@ -9,11 +9,29 @@
 #include <ituGl/geometry/VertexArrayObject.h>
 #include "Vector3.h"
 #include "ituGL/geometry/Mesh.h"
-
+#include <unordered_set>
 class Texture2DArrayObject;
 
 struct Vertex {
     Vector3 position;
+};
+
+//I have to use this because glm::vec3 has some problems when used inside an unordered_map
+struct Face {
+    // Store vertex indices or positions here
+    int vertex1, vertex2, vertex3;
+    bool operator==(const Face& other) const {
+        return vertex1 == other.vertex1 && vertex2 == other.vertex2 && vertex3 == other.vertex3;
+    }
+};
+
+struct HashFunction {
+    size_t operator()(const Face& face) const {
+        // Simple hash combining based on vertices
+        return std::hash<float>()(face.vertex1) ^
+               (std::hash<float>()(face.vertex2) << 1) ^
+               (std::hash<float>()(face.vertex3) << 2);
+    }
 };
 
 class MinecraftApplication : public Application
@@ -38,7 +56,7 @@ private:
     float GenerateVoxelDensity(glm::vec3 voxelPos);
     void DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix);
     int GetVoxelType(float height, float density);
-
+    void InsertFace(int x, int y, int z, std::unordered_set<Face, HashFunction>& faces);
     void UpdateCamera();
     void RenderGUI();
 private:
@@ -53,7 +71,7 @@ private:
     glm::vec3 m_cameraPosition;
     float m_cameraTranslationSpeed;
     float m_cameraRotationSpeed;
-    unsigned int m_cloudHeight;
+    int m_cloudHeight;
     bool m_cameraEnabled;
     bool m_cameraEnablePressed;
 
