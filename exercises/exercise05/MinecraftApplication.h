@@ -19,20 +19,31 @@ struct Vertex {
 //I have to use this because glm::vec3 has some problems when used inside an unordered_map
 struct Face {
     // Store vertex indices or positions here
-    int vertex1, vertex2, vertex3;
+    float vertex1, vertex2, vertex3;
     bool operator==(const Face& other) const {
-        return vertex1 == other.vertex1 && vertex2 == other.vertex2 && vertex3 == other.vertex3;
+        bool areEqual =vertex1 == other.vertex1 && vertex2 == other.vertex2 && vertex3 == other.vertex3;
+        return areEqual;
     }
+    struct HashFunction {
+        size_t operator()(const Face& face) const {
+            size_t seed = 0;
+            // Combine hashes of individual vertex indices
+            hash_combine(seed, face.vertex1);
+            hash_combine(seed, face.vertex2);
+            hash_combine(seed, face.vertex3);
+            return seed;
+        }
+
+        // Utility function to combine hashes
+        template <typename T>
+        void hash_combine(size_t& seed, const T& v) const {
+            std::hash<T> hasher;
+            seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+    };
+
 };
 
-struct HashFunction {
-    size_t operator()(const Face& face) const {
-        // Simple hash combining based on vertices
-        return std::hash<float>()(face.vertex1) ^
-               (std::hash<float>()(face.vertex2) << 1) ^
-               (std::hash<float>()(face.vertex3) << 2);
-    }
-};
 
 class MinecraftApplication : public Application
 {
@@ -56,13 +67,13 @@ private:
     float GenerateVoxelDensity(glm::vec3 voxelPos);
     void DrawObject(const Mesh& mesh, Material& material, const glm::mat4& worldMatrix);
     int GetVoxelType(float height, float density);
-    void InsertFace(int x, int y, int z, std::unordered_set<Face, HashFunction>& faces);
+    void InsertFace(int x, int y, int z, std::unordered_set<Face, Face::HashFunction>& faces);
     void UpdateCamera();
     void RenderGUI();
 private:
     // Helper object for debug GUI
     DearImGui m_imGui;
-
+    std::unordered_set<Face, Face::HashFunction> duplicatedPositions;
     // Mouse position for camera controller
     glm::vec2 m_mousePosition;
 

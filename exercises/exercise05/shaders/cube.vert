@@ -11,7 +11,6 @@ flat out int Mask;
 uniform mat4 WorldMatrix;
 uniform mat4 ViewProjMatrix;
 
-
 void main()
 {
     VoxelGeom = VoxelType;
