@@ -25,7 +25,7 @@ enum VoxelTypes {
 };
 
 MinecraftApplication::MinecraftApplication()
-        : Application(1024, 1024, "Viewer demo"), m_cameraPosition(125, 75, 75), m_gridY(100), m_gridX(250), m_gridZ(250),
+        : Application(1024, 1024, "Viewer demo"), m_cameraPosition(125, 75, 75), m_gridY(50), m_gridX(50), m_gridZ(50),
           m_cameraTranslationSpeed(20.0f), m_cameraRotationSpeed(0.5f), m_cameraEnabled(true),
           m_cameraEnablePressed(true), m_mousePosition(GetMainWindow().GetMousePosition(true)), m_ambientColor(0.0f),
           m_lightColor(0.0f), m_lightIntensity(0.0f), m_lightPosition(0.0f), m_specularExponentGrass(100.0f),
