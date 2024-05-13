@@ -19,10 +19,6 @@
 #include <set>
 #include <iostream>
 
-enum VoxelTypes {
-    GRASS = 0,
-    STONE = 1
-};
 
 MinecraftApplication::MinecraftApplication()
         : Application(1024, 1024, "Viewer demo"), m_cameraPosition(125, 75, 75), m_gridY(50), m_gridX(50), m_gridZ(50),
@@ -132,7 +128,8 @@ void MinecraftApplication::CreateTerrainMesh(Mesh &mesh, unsigned int gridX, uns
             float normalizedZ = (float) j / (float) gridZ - 1;
             float noise = stb_perlin_fbm_noise3(normalizedX * 1.5, 0.0f, normalizedZ * 1.5, 2.0f, 1.5f, 4);
             if(noise > 0.35f) {
-                vertices.emplace_back(glm::vec3(i, m_cloudHeight, j), GetVoxelType(m_cloudHeight, GenerateVoxelDensity(glm::vec3(i,m_cloudHeight,j))));
+                vertices.emplace_back(glm::vec3(i, m_cloudHeight, j), GetVoxelType(m_cloudHeight, GenerateVoxelDensity(glm::vec3(i,
+                                                                                                                                 m_cloudHeight, j))));
                 InsertFace(i, m_cloudHeight, j, takenPositions);
             }
         }
@@ -204,41 +201,43 @@ void MinecraftApplication::InsertFace(int x, int y, int z, std::unordered_set<Fa
 }
 
 
-int MinecraftApplication::GetVoxelType(float height, float density) {
-    int grass = 0;
-    int stone = 1;
-    int diamond = 2;
-    int cloud = 3;
-    int water = 4;
-    int coal = 5;
-    int gold = 6;
+enum VoxelTypes {
+    GRASS = 0,
+    STONE = 1,
+    DIAMOND = 2,
+    CLOUD = 3,
+    WATER = 4,
+    COAL = 5,
+    GOLD = 6
+};
 
+int MinecraftApplication::GetVoxelType(float height, float density) {
     // Height thresholds for different layers
     float diamondHeight = m_gridY / 5;
     float cloudHeight = m_cloudHeight;
 
     if (height == cloudHeight) {
-        return cloud;
+        return VoxelTypes::CLOUD;
     }
 
     if (height < m_gridY - 4) {
         if (height < diamondHeight) {
             if (density > 0.35) {
-                return diamond;
+                return VoxelTypes::DIAMOND;
             } else if (density > 0.34 && density < 0.35) {
-                return gold;
+                return VoxelTypes::GOLD;
             } else {
-                return stone;
+                return VoxelTypes::STONE;
             }
         } else {
             if (density < -0.30) {
-                return coal;
+                return VoxelTypes::COAL;
             } else {
-                return stone;
+                return VoxelTypes::STONE;
             }
         }
     } else {
-        return stone;
+        return VoxelTypes::STONE;
     }
 }
 

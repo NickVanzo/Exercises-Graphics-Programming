@@ -105,4 +105,5 @@ private:
 
     std::shared_ptr<Material> m_grassMaterial;
     std::shared_ptr<Texture2DArrayObject> m_textures;
+
 };
